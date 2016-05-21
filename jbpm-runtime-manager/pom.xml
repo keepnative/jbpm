@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm</artifactId>
-    <version>6.4.0.Final</version>
+    <version>6.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>jbpm-runtime-manager</artifactId>
@@ -76,6 +76,15 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.bmit.platform.soupe</groupId>
+      <artifactId>soupe-data</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+    </dependency>
 
 
     <!-- cdi -->
@@ -145,11 +154,6 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -279,7 +283,9 @@
               org.mvel2,
               org.slf4j,
               org.eclipse.aether.artifact;resolution:=optional,
-              org.xml.sax
+              org.xml.sax,
+              com.bmit.platform.soupe.data.core.model,
+              org.hibernate.annotations
             </Import-Package>
             <Private-Package></Private-Package>
             <Export-Package>

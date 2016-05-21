@@ -13,6 +13,7 @@
 
   <groupId>org.jbpm</groupId>
   <artifactId>jbpm</artifactId>
+  <version>6.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>jBPM :: Multiproject</name>
@@ -52,6 +53,19 @@
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>soupe-snapshots</id>
+      <name>Soupe Snapshots Repository</name>
+      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -114,10 +128,30 @@
               <additionalClasspathElement>${maven.jdbc.driver.jar}</additionalClasspathElement>
             </additionalClasspathElements>
           </configuration>
-        </plugin> 
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>soupe-releases</id>
+      <name>Soupe Releases Repository</name>
+      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>soupe-snapshots</id>
+      <name>Soupe Snapshots Repository</name>
+      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <profiles>
     <profile>
