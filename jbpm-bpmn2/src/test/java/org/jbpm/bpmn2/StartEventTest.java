@@ -564,25 +564,6 @@ public class StartEventTest extends JbpmBpmn2TestCase {
 
         assertEquals(1, listener.getCount("start.delaying"));
     }
-    
-    @Test
-    public void testSignalStartWithCustomEvent() throws Exception {
-        KieBase kbase = createKnowledgeBase("BPMN2-SingalStartWithCustomEvent.bpmn2");
-        ksession = createKnowledgeSession(kbase);
-        final List<ProcessInstance> list = new ArrayList<ProcessInstance>();
-        ksession.addEventListener(new DefaultProcessEventListener() {
-            public void afterProcessStarted(ProcessStartedEvent event) {
-                list.add(event.getProcessInstance());
-            }
-        });
-        NotAvailableGoodsReport report = new NotAvailableGoodsReport("test");
-        ksession.signalEvent("SignalNotAvailableGoods", report);
-        Thread.sleep(500);
-        assertEquals(1, getNumberOfProcessInstances("org.jbpm.example.SignalObjectProcess"));
-        assertEquals(1, list.size());
-        assertProcessVarValue(list.get(0), "report", "NotAvailableGoodsReport{type:test}");
-
-    }
 
     @Test
     public void testSignalStartWithCustomEvent() throws Exception {

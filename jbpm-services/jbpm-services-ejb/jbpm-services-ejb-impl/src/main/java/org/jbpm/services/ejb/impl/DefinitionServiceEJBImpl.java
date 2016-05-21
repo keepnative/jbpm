@@ -65,29 +65,5 @@ public class DefinitionServiceEJBImpl extends BPMN2DataServiceImpl implements De
 	public void onDeactivate(DeploymentEvent event) {
 		super.onDeactivate(event);
 	}
-	
-	@Lock(LockType.WRITE)
-	@Override
-	public void onDeploy(DeploymentEvent event) {
-		super.onDeploy(event);
-	}
-
-	@Lock(LockType.WRITE)
-	@Override
-	public void onUnDeploy(DeploymentEvent event) {
-		super.onUnDeploy(event);
-	}
-
-	@Lock(LockType.WRITE)
-	@Override
-	public void onActivate(DeploymentEvent event) {
-		super.onActivate(event);
-	}
-
-	@Lock(LockType.WRITE)
-	@Override
-	public void onDeactivate(DeploymentEvent event) {
-		super.onDeactivate(event);
-	}
 
 }
