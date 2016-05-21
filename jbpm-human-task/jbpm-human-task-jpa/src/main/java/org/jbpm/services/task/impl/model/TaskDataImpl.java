@@ -17,13 +17,16 @@
 package org.jbpm.services.task.impl.model;
 
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import org.jbpm.services.task.utils.CollectionUtils;
+import org.kie.api.task.model.Attachment;
+import org.kie.api.task.model.Comment;
+import org.kie.api.task.model.Group;
+import org.kie.api.task.model.Status;
+import org.kie.api.task.model.User;
+import org.kie.internal.task.api.model.AccessType;
+import org.kie.internal.task.api.model.ContentData;
+import org.kie.internal.task.api.model.FaultData;
+import org.kie.internal.task.api.model.InternalTaskData;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
@@ -33,17 +36,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
-
-import org.jbpm.services.task.utils.CollectionUtils;
-import org.kie.api.task.model.Attachment;
-import org.kie.api.task.model.Comment;
-import org.kie.api.task.model.Status;
-import org.kie.api.task.model.User;
-import org.kie.api.task.model.Group;
-import org.kie.internal.task.api.model.AccessType;
-import org.kie.internal.task.api.model.ContentData;
-import org.kie.internal.task.api.model.FaultData;
-import org.kie.internal.task.api.model.InternalTaskData;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 @Embeddable
 public class TaskDataImpl implements InternalTaskData {

@@ -1,5 +1,26 @@
 package org.jbpm.persistence.processinstance;
 
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.drools.core.common.InternalKnowledgeRuntime;
+import org.drools.core.impl.InternalKnowledgeBase;
+import org.drools.core.impl.StatefulKnowledgeSessionImpl;
+import org.drools.core.marshalling.impl.MarshallerReaderContext;
+import org.drools.core.marshalling.impl.MarshallerWriteContext;
+import org.drools.core.marshalling.impl.PersisterHelper;
+import org.drools.core.marshalling.impl.ProtobufMarshaller;
+import org.drools.persistence.Transformable;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.jbpm.marshalling.impl.JBPMMessages;
+import org.jbpm.marshalling.impl.ProcessInstanceMarshaller;
+import org.jbpm.marshalling.impl.ProcessMarshallerRegistry;
+import org.jbpm.marshalling.impl.ProtobufRuleFlowProcessInstanceMarshaller;
+import org.jbpm.process.instance.impl.ProcessInstanceImpl;
+import org.jbpm.workflow.instance.impl.WorkflowProcessInstanceImpl;
+import org.kie.api.runtime.Environment;
+import org.kie.api.runtime.process.ProcessInstance;
+
+import javax.persistence.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,62 +31,48 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Transient;
-import javax.persistence.Version;
-
-import org.drools.core.common.InternalKnowledgeRuntime;
-import org.drools.core.impl.InternalKnowledgeBase;
-import org.drools.core.impl.StatefulKnowledgeSessionImpl;
-import org.drools.core.marshalling.impl.MarshallerReaderContext;
-import org.drools.core.marshalling.impl.MarshallerWriteContext;
-import org.drools.core.marshalling.impl.PersisterHelper;
-import org.drools.core.marshalling.impl.ProtobufMarshaller;
-import org.drools.persistence.Transformable;
-import org.jbpm.marshalling.impl.JBPMMessages;
-import org.jbpm.marshalling.impl.ProcessInstanceMarshaller;
-import org.jbpm.marshalling.impl.ProcessMarshallerRegistry;
-import org.jbpm.marshalling.impl.ProtobufRuleFlowProcessInstanceMarshaller;
-import org.jbpm.process.instance.impl.ProcessInstanceImpl;
-import org.jbpm.workflow.instance.impl.WorkflowProcessInstanceImpl;
-import org.kie.api.runtime.Environment;
-import org.kie.api.runtime.process.ProcessInstance;
-
 @Entity
-@SequenceGenerator(name="processInstanceInfoIdSeq", sequenceName="PROCESS_INSTANCE_INFO_ID_SEQ")
-public class ProcessInstanceInfo implements Transformable {
+@Table(name = "SOUPE_WF_PROC_INST")
+public class ProcessInstanceInfo extends AbstractBaseEntityWithDomainNoAuditing implements Transformable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="processInstanceInfoIdSeq")
-    @Column(name = "InstanceId")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_PROC_INST")
+            }
+    )
+    @Column(name = "ID")
     private Long                              processInstanceId;
 
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int                               version;
 
+    @Column(name = "PROCESS_ID")
     private String                            processId;
+
+    @Column(name = "START_DATE")
     private Date                              startDate;
+
+    @Column(name = "LAST_READ_DATE")
     private Date                              lastReadDate;
+
+    @Column(name = "LAST_MODIFICATION_DATE")
     private Date                              lastModificationDate;
+
+    @Column(name = "STATE")
     private int                               state;
     
     @Lob
-    @Column(length=2147483647)
+    @Column(name = "PROCESS_INSTANCE_BYTE_ARRAY", length=2147483647)
     byte[]                                    processInstanceByteArray;
 
     @ElementCollection
-    @CollectionTable(name="EventTypes", joinColumns=@JoinColumn(name="InstanceId"))
-    @Column(name="element")
+    @CollectionTable(name="SOUPE_WF_EVENT_TYPE", joinColumns=@JoinColumn(name="PROCESS_INSTANCE_ID"))
+    @Column(name="ELEMENT")
     private Set<String>                       eventTypes         = new HashSet<String>();
     
     @Transient

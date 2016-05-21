@@ -15,37 +15,47 @@
  */
 package org.jbpm.persistence.correlation;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.kie.internal.process.CorrelationKey;
+import org.kie.internal.process.CorrelationProperty;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Version;
-
-import org.kie.internal.process.CorrelationKey;
-import org.kie.internal.process.CorrelationProperty;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@SequenceGenerator(name="correlationKeyInfoIdSeq", sequenceName="CORRELATION_KEY_ID_SEQ")
-public class CorrelationKeyInfo implements CorrelationKey {
+@Table(name = "SOUPE_WF_CORRELATION_KEY")
+public class CorrelationKeyInfo extends AbstractBaseEntityWithDomainNoAuditing implements CorrelationKey {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="correlationKeyInfoIdSeq")
-    @Column(name = "keyId")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CORRELATION_KEY")
+            }
+    )
+    @Column(name = "ID")
     private long id;
     
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int version;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
-    
+
+    @Column(name = "NAME")
     private String name;
     
     @OneToMany(mappedBy="correlationKey", cascade=CascadeType.ALL)

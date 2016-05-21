@@ -16,40 +16,52 @@
 
 package org.jbpm.services.task.impl.model;
 
-import static org.jbpm.services.task.impl.model.TaskDataImpl.*;
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.kie.api.task.model.User;
+import org.kie.internal.task.api.model.InternalComment;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-
-import org.kie.api.task.model.User;
-import org.kie.internal.task.api.model.InternalComment;
+import static org.jbpm.services.task.impl.model.TaskDataImpl.convertToUserImpl;
 
 @Entity
-@Table(name = "task_comment")
-@SequenceGenerator(name="commentIdSeq", sequenceName="COMMENT_ID_SEQ", allocationSize=1)
-public class CommentImpl implements InternalComment  {
-    
+@Table(name = "SOUPE_WF_COMMENT")
+public class CommentImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalComment  {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="commentIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_COMMENT")
+            }
+    )
+    @Column(name = "ID")
     private Long id = 0L;
 
-    @Lob @Column(length=65535)
+    @Lob
+    @Column(name = "TEXT", length=65535)
     private String text;
     
     @ManyToOne()
+    @JoinColumn(name = "ADDED_BY")
     private UserImpl addedBy;
-    
+
+    @Column(name = "ADDED_AT")
     private Date addedAt;    
     
     public void writeExternal(ObjectOutput out) throws IOException {

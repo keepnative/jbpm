@@ -16,19 +16,19 @@
 
 package org.jbpm.services.task.impl.model;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.kie.internal.task.api.model.InternalOrganizationalEntity;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
-import org.kie.internal.task.api.model.InternalOrganizationalEntity;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 @Entity
-@Table(name="OrganizationalEntity")
-public abstract class OrganizationalEntityImpl implements InternalOrganizationalEntity {
+@Table(name="SOUPE_WF_ORGANIZATIONAL_ENTITY")
+public abstract class OrganizationalEntityImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalOrganizationalEntity {
     
     @Id
     private String id;   

@@ -15,6 +15,22 @@
  */
 package org.jbpm.services.task.impl.model;
 
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.jbpm.services.task.utils.CollectionUtils;
+import org.kie.api.task.model.I18NText;
+import org.kie.internal.task.api.model.Escalation;
+
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -22,40 +38,34 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-
-import org.jbpm.services.task.utils.CollectionUtils;
-import org.kie.api.task.model.I18NText;
-import org.kie.internal.task.api.model.Escalation;
-
 @Entity
-@Table(name="Deadline")
-@SequenceGenerator(name="deadlineIdSeq", sequenceName="DEADLINE_ID_SEQ", allocationSize=1)
-public class DeadlineImpl implements org.kie.internal.task.api.model.Deadline {
+@Table(name="SOUPE_WF_DEADLINE")
+public class DeadlineImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Deadline {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="deadlineIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTENT")
+            }
+    )
+    @Column(name = "ID")
     private Long id;
+
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Deadline_Documentation_Id", nullable = true)
+    @JoinColumn(name = "DEADLINE_DOCUMENTATION_ID", nullable = true)
     private List<I18NText> documentation = Collections.emptyList();
-    @Column(name = "deadline_date")
+
+    @Column(name = "DEADLINE_DATE")
     private Date date;
     @OneToMany(cascade = CascadeType.ALL, targetEntity=EscalationImpl.class)
-    @JoinColumn(name = "Deadline_Escalation_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_ID", nullable = true)
     private List<Escalation> escalations = Collections.emptyList();
     
     @Basic
+    @Column(name = "ESCALATED")
     private Short escalated = 0;
 
     public Boolean isEscalated() {

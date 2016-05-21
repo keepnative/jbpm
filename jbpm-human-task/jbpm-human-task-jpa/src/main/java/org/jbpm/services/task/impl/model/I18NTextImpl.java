@@ -16,37 +16,46 @@
 
 package org.jbpm.services.task.impl.model;
 
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.kie.internal.task.api.model.InternalI18NText;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-
-import org.kie.internal.task.api.model.InternalI18NText;
-
 @Entity
-@Table(name="I18NText")
-@SequenceGenerator(name="i18nTextIdSeq", sequenceName="I18NTEXT_ID_SEQ", allocationSize=1)
-public class I18NTextImpl implements InternalI18NText {
-    
+@Table(name="SOUPE_WF_I18N_TEXT")
+public class I18NTextImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalI18NText {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="i18nTextIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_I18N_TEXT")
+            }
+    )
+    @Column(name = "ID")
     private Long   id = 0L;
 
+    @Column(name = "LANGUAGE")
     private String language;
 
+    @Column(name = "SHORT_TEXT")
     private String shortText;
 
-    @Lob @Column(length=65535)
+    @Lob
+    @Column(name = "TEXT", length=65535)
     private String text;
 
     public I18NTextImpl() {

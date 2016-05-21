@@ -22,7 +22,7 @@
   <!-- major.minor.micro.Final -->
   <!-- For example: 1.2.3 without the suffix ".Final" corrupts the OSGi eclipse updatesite -->
   <!-- For example: 1.2.3.M2 corrupts the OSGi eclipse updatesite update order -->
-  <version>6.2.0.Final</version>
+  <version>6.2.0-SNAPSHOT</version>
 
   <name>jBPM :: Multiproject</name>
   <description>jBPM: a Business Process Management (BPM) Suite</description>
@@ -61,6 +61,19 @@
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>soupe-snapshots</id>
+      <name>Soupe Snapshots Repository</name>
+      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -116,10 +129,30 @@
             </excludes>
             <argLine>-Xmx1024m -XX:MaxPermSize=128m</argLine>
           </configuration>
-        </plugin> 
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>soupe-releases</id>
+      <name>Soupe Releases Repository</name>
+      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>soupe-snapshots</id>
+      <name>Soupe Snapshots Repository</name>
+      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <profiles>
     <profile>

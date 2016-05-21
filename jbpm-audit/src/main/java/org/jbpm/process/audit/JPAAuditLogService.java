@@ -16,57 +16,6 @@
 
 package org.jbpm.process.audit;
 
-import static org.kie.internal.query.QueryParameterIdentifiers.ASCENDING_VALUE;
-import static org.kie.internal.query.QueryParameterIdentifiers.DATE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.DESCENDING_VALUE;
-import static org.kie.internal.query.QueryParameterIdentifiers.DURATION_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.END_DATE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.EXTERNAL_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.FILTER;
-import static org.kie.internal.query.QueryParameterIdentifiers.FIRST_RESULT;
-import static org.kie.internal.query.QueryParameterIdentifiers.FLUSH_MODE;
-import static org.kie.internal.query.QueryParameterIdentifiers.IDENTITY_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.LAST_VARIABLE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.MAX_RESULTS;
-import static org.kie.internal.query.QueryParameterIdentifiers.NODE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.NODE_INSTANCE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.NODE_NAME_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.NODE_TYPE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.OLD_VALUE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.ORDER_BY;
-import static org.kie.internal.query.QueryParameterIdentifiers.ORDER_TYPE;
-import static org.kie.internal.query.QueryParameterIdentifiers.OUTCOME_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_INSTANCE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_INSTANCE_STATUS_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_NAME_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_VERSION_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.START_DATE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.VALUE_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.VARIABLE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.VARIABLE_INSTANCE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.VAR_VALUE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.VAR_VAL_SEPARATOR;
-import static org.kie.internal.query.QueryParameterIdentifiers.WORK_ITEM_ID_LIST;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.ServiceLoader;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.FlushModeType;
-import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
-
 import org.jbpm.process.audit.query.NodeInstLogQueryBuilderImpl;
 import org.jbpm.process.audit.query.NodeInstanceLogDeleteBuilderImpl;
 import org.jbpm.process.audit.query.ProcInstLogQueryBuilderImpl;
@@ -79,7 +28,6 @@ import org.jbpm.process.audit.strategy.StandaloneJtaStrategy;
 import org.kie.api.runtime.Environment;
 import org.kie.api.runtime.EnvironmentName;
 import org.kie.internal.query.QueryAndParameterAppender;
-import org.kie.internal.query.QueryContext;
 import org.kie.internal.query.QueryModificationService;
 import org.kie.internal.query.data.QueryData;
 import org.kie.internal.runtime.manager.audit.query.NodeInstanceLogDeleteBuilder;
@@ -90,6 +38,25 @@ import org.kie.internal.runtime.manager.audit.query.VariableInstanceLogDeleteBui
 import org.kie.internal.runtime.manager.audit.query.VariableInstanceLogQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.FlushModeType;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ServiceLoader;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.kie.internal.query.QueryParameterIdentifiers.*;
 
 /**
  * </p>
@@ -135,8 +102,14 @@ public class JPAAuditLogService implements AuditLogService {
     
     public JPAAuditLogService(Environment env) {
         EntityManagerFactory emf = (EntityManagerFactory) env.get(EnvironmentName.ENTITY_MANAGER_FACTORY);
-        if( emf != null ) { 
-            persistenceStrategy = new StandaloneJtaStrategy(emf);
+        if( emf != null ) {
+            PersistenceStrategyType persistenceStrategyType
+                    = (PersistenceStrategyType)env.get(PersistenceStrategy.PERSISTENCE_STRATEGY_TYPE_NAME);
+            if (persistenceStrategyType != null) {
+                persistenceStrategy = PersistenceStrategyType.getPersistenceStrategy(persistenceStrategyType, env);
+            } else {
+                persistenceStrategy = new StandaloneJtaStrategy(emf);
+            }
         } else { 
             persistenceStrategy = new StandaloneJtaStrategy(Persistence.createEntityManagerFactory(persistenceUnitName));
         } 

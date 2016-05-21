@@ -16,11 +16,9 @@
 
 package org.jbpm.services.task.impl.model;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Collections;
-import java.util.List;
+import org.jbpm.services.task.utils.CollectionUtils;
+import org.kie.api.task.model.OrganizationalEntity;
+import org.kie.internal.task.api.model.AllowedToDelegate;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
@@ -28,10 +26,11 @@ import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-
-import org.jbpm.services.task.utils.CollectionUtils;
-import org.kie.api.task.model.OrganizationalEntity;
-import org.kie.internal.task.api.model.AllowedToDelegate;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Collections;
+import java.util.List;
 
 @Embeddable
 public class DelegationImpl  implements org.kie.internal.task.api.model.Delegation {
@@ -39,7 +38,7 @@ public class DelegationImpl  implements org.kie.internal.task.api.model.Delegati
     private AllowedToDelegate                    allowedToDelegate;
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "Delegation_delegates", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))    
+    @JoinTable(name = "SOUPE_WF_DELEGATION_DELEGATE", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> delegates = Collections.emptyList();
     
     public void writeExternal(ObjectOutput out) throws IOException {

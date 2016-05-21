@@ -16,48 +16,57 @@
 
 package org.jbpm.services.task.impl.model;
 
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.jbpm.services.task.utils.CollectionUtils;
+import org.kie.internal.task.api.model.BooleanExpression;
+import org.kie.internal.task.api.model.Notification;
+import org.kie.internal.task.api.model.Reassignment;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-
-import org.jbpm.services.task.utils.CollectionUtils;
-import org.kie.internal.task.api.model.BooleanExpression;
-import org.kie.internal.task.api.model.Notification;
-import org.kie.internal.task.api.model.Reassignment;
-
 @Entity
-@Table(name="Escalation")
-@SequenceGenerator(name="escalationIdSeq", sequenceName="ESCALATION_ID_SEQ", allocationSize=1)
-public class EscalationImpl implements org.kie.internal.task.api.model.Escalation {
+@Table(name="SOUPE_WF_ESCALATION")
+public class EscalationImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Escalation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="escalationIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_ESCALATION")
+            }
+    )
+    @Column(name = "ID")
     private Long                    id;
 
+    @Column(name = "NAME")
     private String                  name;
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=BooleanExpressionImpl.class)
-    @JoinColumn(name = "Escalation_Constraints_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_CONSTRAINT_ID", nullable = true)
     private List<BooleanExpression> constraints   = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=NotificationImpl.class)
-    @JoinColumn(name = "Escalation_Notifications_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_NOTIFICATION_ID", nullable = true)
     private List<Notification>      notifications = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=ReassignmentImpl.class)
-    @JoinColumn(name = "Escalation_Reassignments_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_REASSIGNMENT_ID", nullable = true)
     private List<Reassignment>      reassignments = Collections.emptyList();
     
     public void writeExternal(ObjectOutput out) throws IOException {

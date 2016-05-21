@@ -16,43 +16,51 @@
 
 package org.jbpm.services.task.impl.model;
 
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.jbpm.services.task.utils.CollectionUtils;
+import org.kie.api.task.model.I18NText;
+import org.kie.api.task.model.OrganizationalEntity;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-
-import org.jbpm.services.task.utils.CollectionUtils;
-import org.kie.api.task.model.I18NText;
-import org.kie.api.task.model.OrganizationalEntity;
-
 @Entity
-@Table(name="Reassignment")
-@SequenceGenerator(name="reassignmentIdSeq", sequenceName="REASSIGNMENT_ID_SEQ", allocationSize=1)
-public class ReassignmentImpl implements org.kie.internal.task.api.model.Reassignment {
-    
+@Table(name="SOUPE_WF_REASSIGNMENT")
+public class ReassignmentImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Reassignment {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="reassignmentIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_REASSIGNMENT")
+            }
+    )
+    @Column(name = "ID")
     private Long                       id;
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Reassignment_Documentation_Id", nullable = true)     
+    @JoinColumn(name = "REASSIGNMENT_DOCUMENTATION_ID", nullable = true)
     private List<I18NText>             documentation = Collections.emptyList();
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "Reassignment_potentialOwners", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))    
+    @JoinTable(name = "SOUPE_WF_RASIN_POTENTIAL_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> potentialOwners = Collections.emptyList();
 
     public void writeExternal(ObjectOutput out) throws IOException {

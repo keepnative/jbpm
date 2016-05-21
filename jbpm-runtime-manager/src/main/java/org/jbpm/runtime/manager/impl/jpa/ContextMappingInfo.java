@@ -15,17 +15,19 @@
  */
 package org.jbpm.runtime.manager.impl.jpa;
 
-import java.io.Serializable;
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Version;
+import java.io.Serializable;
 
 /**
  * The main entity that helps the runtime manager keep track of which context is bound to which <code>KieSession</code>.
@@ -37,7 +39,7 @@ import javax.persistence.Version;
  * This entity must be included in the persistence.xml when the "Per Process Instance" strategy is used.
  */
 @Entity
-@SequenceGenerator(name="contextMappingInfoIdSeq", sequenceName="CONTEXT_MAPPING_INFO_ID_SEQ")
+@Table(name = "SOUPE_WF_CONTEXT_MAPPING")
 @NamedQueries(value=
     {@NamedQuery(name="FindContextMapingByContextId", 
                 query="from ContextMappingInfo where contextId = :contextId"
@@ -50,16 +52,24 @@ import javax.persistence.Version;
                 		+ "ProcessInstanceInfo processInstanceInfo join processInstanceInfo.eventTypes eventTypes"
                 		+ " where eventTypes = 'timer' and cmInfo.contextId = cast(processInstanceInfo.processInstanceId as string)"
                 		+ " and cmInfo.ownerId = :ownerId")})
-public class ContextMappingInfo implements Serializable {
+public class ContextMappingInfo extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
 
     private static final long serialVersionUID = 533985957655465840L;
-    
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="contextMappingInfoIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTEXT_MAPPING")
+            }
+    )
+    @Column(name = "ID")
     private Long mappingId;
 
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int version;
     
     @Column(name="CONTEXT_ID", nullable=false)

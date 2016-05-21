@@ -4,54 +4,65 @@
  */
 package org.jbpm.services.task.audit.impl.model;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Date;
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.kie.internal.task.api.model.TaskEvent;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.Version;
-
-import org.kie.internal.task.api.model.TaskEvent;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Date;
 
 /**
  *
  */
 @Entity
-@Table(name = "TaskEvent")
-@SequenceGenerator(name = "taskEventIdSeq", sequenceName = "TASK_EVENT_ID_SEQ")
-public class TaskEventImpl implements TaskEvent {
+@Table(name="SOUPE_WF_TASK_EVENT")
+public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskEvent {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO, generator = "taskEventIdSeq")
-  @Column(name = "id")
+  @GeneratedValue(generator = "sequenceStyleGenerator")
+  @GenericGenerator(
+          name = "sequenceStyleGenerator",
+          strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+          parameters = {
+                  @org.hibernate.annotations.Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK_EVENT")
+          }
+  )
+  @Column(name = "ID")
   private Long id;
 
   @Version
-  @Column(name = "OPTLOCK")
+  @Column(name = "VERSION")
   private Integer version;
 
+  @Column(name = "TASK_ID")
   private Long taskId;
 
+  @Column(name = "WORK_ITEM_ID")
   private Long workItemId;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "TYPE")
   private TaskEventType type;
 
+  @Column(name = "PROCESS_INSTANCE_ID")
   private Long processInstanceId;
 
+  @Column(name = "USER_ID")
   private String userId;
 
   @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+  @Column(name = "LOG_TIME")
   private Date logTime;
 
   public TaskEventImpl() {
