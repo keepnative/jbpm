@@ -16,6 +16,7 @@
 
 package org.jbpm.services.task.audit.impl.model;
 
+import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.kie.internal.task.api.TaskVariable;
 import org.slf4j.Logger;
@@ -26,12 +27,12 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-@Table(name="SOUPE_WF_TASK_VARIABLE")
-public class TaskVariableImpl implements TaskVariable, Serializable {
+@Table(name = "SOUPE_WF_TASK_VARIABLE")
+public class TaskVariableImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskVariable, Serializable {
 
     private static final long serialVersionUID = 5388016330549830048L;
     private static final Logger logger = LoggerFactory.getLogger(TaskVariableImpl.class);
-    
+
     @Transient
     private final int VARIABLE_LOG_LENGTH = Integer.parseInt(System.getProperty("org.jbpm.task.var.log.length", "4000"));
 
@@ -60,10 +61,11 @@ public class TaskVariableImpl implements TaskVariable, Serializable {
     @Column(name = "NAME")
     private String name;
 
-    @Column(name = "VALUE", length=4000)
+    @Column(name = "VALUE", length = 4000)
     private String value;
 
     @Enumerated(EnumType.ORDINAL)
+    @Column(name = "TYPE")
     private VariableType type;
 
     @Temporal(TemporalType.TIMESTAMP)

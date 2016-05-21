@@ -113,6 +113,7 @@ public class TaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements 
 
     @Enumerated(EnumType.STRING)
     // Default Behaviour
+    @Column(name = "SUB_TASK_STRATEGY")
     private SubTasksStrategy subTaskStrategy = SubTasksStrategy.NoAction;
     
     private String               taskType;
@@ -120,6 +121,7 @@ public class TaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements 
     private String               formName;
     
     @Basic
+    @Column(name = "ARCHIVED")
     private Short archived = 0;
     
 

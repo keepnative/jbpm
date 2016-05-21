@@ -20,13 +20,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.process.CorrelationProperty;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Version;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "SOUPE_WF_CORRELATION_PROP")
@@ -58,6 +52,7 @@ public class CorrelationPropertyInfo extends AbstractBaseEntityWithDomainNoAudit
     private int version;
     
     @ManyToOne
+    @JoinColumn(name = "CORRELATION_KEY_ID")
     private CorrelationKeyInfo correlationKey;
 
     @Column(name = "NAME")

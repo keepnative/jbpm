@@ -20,12 +20,7 @@ import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.OrganizationalEntity;
 import org.kie.internal.task.api.model.AllowedToDelegate;
 
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -34,7 +29,8 @@ import java.util.List;
 
 @Embeddable
 public class DelegationImpl  implements org.kie.internal.task.api.model.Delegation {
-    @Enumerated(EnumType.STRING)      
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ALLOWED_TO_DELEGATE")
     private AllowedToDelegate                    allowedToDelegate;
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)

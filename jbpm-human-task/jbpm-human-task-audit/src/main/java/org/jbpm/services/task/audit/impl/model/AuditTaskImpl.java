@@ -51,7 +51,7 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     )
     @Column(name = "ID")
     private Long id;
-    
+
     @Column(name = "TASK_ID")
     private Long taskId;
 
@@ -86,6 +86,7 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     private long parentId;
     @Column(name = "DEPLOYMENT_ID")
     private String deploymentId;
+    @Column(name = "WORK_ITEM_ID")
     private Long workItemId;
 
 

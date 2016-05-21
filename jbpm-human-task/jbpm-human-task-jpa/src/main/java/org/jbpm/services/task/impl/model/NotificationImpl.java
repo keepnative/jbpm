@@ -60,6 +60,7 @@ public class NotificationImpl extends AbstractBaseEntityWithDomainNoAuditing imp
     @JoinColumn(name = "NOTIFICATION_DOCUMENTATION_ID", nullable = true)
     private List<I18NText>                   documentation = Collections.emptyList();
 
+    @Column(name = "PRIORITY")
     private int                              priority;
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
