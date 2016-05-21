@@ -1,5 +1,5 @@
 /*
-Copyright 2013 JBoss Inc
+Copyright 2013 Red Hat, Inc. and/or its affiliates.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -251,16 +251,7 @@ public abstract class JbpmBpmn2TestCase extends AbstractBaseTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
         if (setupDataSource) {
-            if (ds != null) {
-                try {
-                    ds.close();
-                } catch (Exception ex) {
-                    // ignore
-                }
-                ds = null;
-            }
-            server.stop();
-            DeleteDbFiles.execute("~", "jbpm-db", true);
+            String runningTransactionStatus = null;
 
             // Clean up possible transactions
             Transaction tx = TransactionManagerServices.getTransactionManager()
@@ -275,12 +266,10 @@ public abstract class JbpmBpmn2TestCase extends AbstractBaseTest {
                     } catch (Throwable t) {
                         // do nothing..
                     }
-                    Assert.fail("Transaction had status "
-                            + txStateName[testTxState]
-                            + " at the end of the test.");
+                    runningTransactionStatus = txStateName[testTxState];
                 }
             }
-            
+
             if (emf != null) {
                 try {
                     emf.close();
@@ -288,6 +277,24 @@ public abstract class JbpmBpmn2TestCase extends AbstractBaseTest {
                     // ignore
                 }
                 emf = null;
+            }
+
+            // If everything is closed, close data source and stop server.
+            if (ds != null) {
+                try {
+                    ds.close();
+                } catch (Exception ex) {
+                    // ignore
+                }
+                ds = null;
+            }
+            server.stop();
+            DeleteDbFiles.execute("~", "jbpm-db", true);
+
+            if (runningTransactionStatus != null) {
+                Assert.fail("Transaction had status "
+                        + runningTransactionStatus
+                        + " at the end of the test.");
             }
         }
     }
@@ -459,7 +466,7 @@ public abstract class JbpmBpmn2TestCase extends AbstractBaseTest {
                     DefaultSignalManagerFactory.class.getName());
             defaultProps.setProperty("drools.processInstanceManagerFactory",
                     DefaultProcessInstanceManagerFactory.class.getName());
-            conf = new SessionConfiguration(defaultProps);
+            conf = SessionConfiguration.newInstance(defaultProps);
             conf.setOption(ForceEagerActivationOption.YES);
             result = (StatefulKnowledgeSession) kbase.newKieSession(conf, env);
             logger = new WorkingMemoryInMemoryLogger(result);
@@ -548,7 +555,24 @@ public abstract class JbpmBpmn2TestCase extends AbstractBaseTest {
         ProcessInstance processInstance = ksession
                 .getProcessInstance(processInstanceId);
         if (processInstance instanceof WorkflowProcessInstance) {
-            assertNodeActive((WorkflowProcessInstance) processInstance, names);
+            if (sessionPersistence) {
+                List<? extends NodeInstanceLog> logs = logService.findNodeInstances(processInstanceId); // ENTER -> EXIT is correctly ordered
+                if (logs != null) {
+                    List<String> activeNodes = new ArrayList<String>();
+                    for (NodeInstanceLog l : logs) {
+                        String nodeName = l.getNodeName();
+                        if (l.getType() == NodeInstanceLog.TYPE_ENTER && names.contains(nodeName)) {
+                            activeNodes.add(nodeName);
+                        }
+                        if (l.getType() == NodeInstanceLog.TYPE_EXIT && names.contains(nodeName)) {
+                            activeNodes.remove(nodeName);
+                        }
+                    }
+                    names.removeAll(activeNodes);
+                }
+            } else {
+                assertNodeActive((WorkflowProcessInstance) processInstance, names);
+            }
         }
         if (!names.isEmpty()) {
             String s = names.get(0);

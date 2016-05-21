@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.drools.core.process.instance.impl.WorkItemImpl;
 import org.jbpm.process.core.timer.DateTimeUtils;
@@ -97,14 +98,20 @@ public abstract class AbstractHTWorkItemHandler implements WorkItemHandler {
         if (comment == null) {
             comment = "";
         }
+        
+        String description = (String) workItem.getParameter("Description");
+        if (description == null) {
+            description = comment;
+        }
+        
         List<I18NText> descriptions = new ArrayList<I18NText>();
         I18NText descText = TaskModelProvider.getFactory().newI18NText();
         ((InternalI18NText) descText).setLanguage(locale);
-        ((InternalI18NText) descText).setText(comment);
+        ((InternalI18NText) descText).setText(description);
         descriptions.add(descText);
         task.setDescriptions(descriptions);
         
-        task.setDescription(comment);
+        task.setDescription(description);
         
         List<I18NText> subjects = new ArrayList<I18NText>();
         I18NText subjectText = TaskModelProvider.getFactory().newI18NText();
@@ -190,9 +197,21 @@ public abstract class AbstractHTWorkItemHandler implements WorkItemHandler {
             if(session != null){
                 env = session.getEnvironment();
             }
-            content = ContentMarshallerHelper.marshal(contentObject, env);
+            content = ContentMarshallerHelper.marshal(null, contentObject, env);
         }
         return content;
+    }
+    
+    protected Map<String, Object> createTaskDataBasedOnWorkItemParams(KieSession session, WorkItem workItem) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        Object contentObject = workItem.getParameter("Content");
+        if (contentObject == null) {
+            data = new HashMap<String, Object>(workItem.getParameters());
+        } else {
+            data.put("Content", contentObject);
+        }
+        
+        return data;
     }
     
     protected boolean isAutoClaim(WorkItem workItem, Task task) {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
 
 package org.jbpm.bpmn2.xml;
 
-import static org.jbpm.bpmn2.xml.ProcessHandler.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.drools.core.rule.builder.dialect.asm.GeneratorHelper.GetMethodBytecodeMethod;
 import org.drools.core.xml.ExtensibleXmlParser;
 import org.jbpm.bpmn2.core.Escalation;
 import org.jbpm.bpmn2.core.IntermediateLink;
 import org.jbpm.bpmn2.core.Message;
+import org.jbpm.bpmn2.core.Signal;
 import org.jbpm.compiler.xml.ProcessBuildData;
 import org.jbpm.process.core.impl.DataTransformerRegistry;
 import org.jbpm.ruleflow.core.RuleFlowProcess;
@@ -92,6 +90,7 @@ public class IntermediateThrowEventHandler extends AbstractNodeHandler {
 				NodeContainer nodeContainer = (NodeContainer) parser
 						.getParent();
 				nodeContainer.addNode(linkNode);
+				((ProcessBuildData) parser.getData()).addNode(node);
 				// we break the while and stop the execution of this method.
 				return linkNode;
 			}
@@ -192,10 +191,29 @@ public class IntermediateThrowEventHandler extends AbstractNodeHandler {
             } else if ("dataInputAssociation".equals(nodeName)) {
 				readDataInputAssociation(xmlNode, actionNode);
 			} else if ("signalEventDefinition".equals(nodeName)) {
-				String signalName = ((Element) xmlNode)
-						.getAttribute("signalRef");
-				String variable = (String) actionNode
-						.getMetaData("MappingVariable");
+				String signalName = ((Element) xmlNode).getAttribute("signalRef");
+				String variable = (String) actionNode.getMetaData("MappingVariable");
+				
+				Map<String, Signal> signals = (Map<String, Signal>) ((ProcessBuildData) parser.getData()).getMetaData("Signals");
+                
+                if (signals != null && signals.containsKey(signalName)) {
+                    Signal signal = signals.get(signalName);                      
+                    signalName = signal.getName();
+                    if (signalName == null) {
+                        throw new IllegalArgumentException("Signal definition must have a name attribute");
+                    }
+                }
+                actionNode.setMetaData("EventType", "signal");
+                actionNode.setMetaData("Ref", signalName);
+                actionNode.setMetaData("Variable", variable);
+                
+				// check if signal should be send async
+				if (dataInputs.containsValue("async")) {
+				    signalName = "ASYNC-" + signalName;
+				}
+				
+				String signalExpression = getSignalExpression(actionNode, signalName, "tVariable");
+
 				actionNode
 						.setAction(new DroolsConsequenceAction(
 								"java",
@@ -205,17 +223,13 @@ public class IntermediateThrowEventHandler extends AbstractNodeHandler {
 								+ "  tVariable = new org.jbpm.process.core.event.EventTransformerImpl(transformation)"
 								+ "  .transformEvent("+(variable == null ? "null" : variable)+");"
 								+ "}"+
-								RUNTIME_SIGNAL_EVENT 
-										+ signalName
-										+ "\", "
-										+ "tVariable"
-										+ ");"));
+								signalExpression));
 			}
 			xmlNode = xmlNode.getNextSibling();
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
 	public void handleMessageNode(final Node node, final Element element,
 			final String uri, final String localName,
 			final ExtensibleXmlParser parser) throws SAXException {
@@ -267,6 +281,8 @@ public class IntermediateThrowEventHandler extends AbstractNodeHandler {
 										+ "workItem.setNodeInstanceId(kcontext.getNodeInstance().getId());"
 										+ EOL
 										+ "workItem.setNodeId(kcontext.getNodeInstance().getNodeId());"
+										+ EOL
+										+ "workItem.setDeploymentId((String) kcontext.getKnowledgeRuntime().getEnvironment().get(\"deploymentId\"));"
 										+ EOL
 										+ (variable == null ? ""
 												: "workItem.setParameter(\"Message\", tVariable);" + EOL)

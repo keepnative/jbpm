@@ -1,10 +1,19 @@
-package org.jbpm.process;
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+package org.jbpm.process;
 
 import org.drools.core.SessionConfiguration;
 import org.drools.core.base.MapGlobalResolver;
@@ -41,6 +50,12 @@ import org.kie.internal.KnowledgeBase;
 import org.kie.internal.process.CorrelationAwareProcessRuntime;
 import org.kie.internal.process.CorrelationKey;
 import org.kie.internal.runtime.StatefulKnowledgeSession;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
 
 public class StatefulProcessSession extends AbstractRuntime implements StatefulKnowledgeSession, InternalKnowledgeRuntime, CorrelationAwareProcessRuntime {
 
@@ -155,18 +170,19 @@ public class StatefulProcessSession extends AbstractRuntime implements StatefulK
 	}
 
 	public void executeQueuedActions() {
+		if (this.actionQueue.isEmpty()) {
+			return;
+		}
         try {
             startOperation();
-            if (!this.actionQueue.isEmpty()) {
-                WorkingMemoryAction action = null;
-                while ((action = actionQueue.poll()) != null) {
-                    try {
-                        action.execute(this);
-                    } catch (Exception e) {
-                        throw new RuntimeException( "Unexpected exception executing action " + action.toString(), e );
-                    }
-                }
-            }
+			WorkingMemoryAction action = null;
+			while ((action = actionQueue.poll()) != null) {
+				try {
+					action.execute(this);
+				} catch (Exception e) {
+					throw new RuntimeException( "Unexpected exception executing action " + action.toString(), e );
+				}
+			}
         } finally {
             endOperation();
         }
@@ -323,6 +339,10 @@ public class StatefulProcessSession extends AbstractRuntime implements StatefulK
     }
 
     public void delete(FactHandle handle) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void delete(FactHandle handle, FactHandle.State fhState) {
         throw new UnsupportedOperationException();
     }
 

@@ -1,14 +1,21 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.services.task.commands;
 
 import static org.kie.internal.query.QueryParameterIdentifiers.*;
-import static org.kie.internal.query.QueryParameterIdentifiers.BUSINESS_ADMIN_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.MAX_RESULTS;
-import static org.kie.internal.query.QueryParameterIdentifiers.POTENTIAL_OWNER_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_INSTANCE_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.STAKEHOLDER_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.PROCESS_INSTANCE_STATUS_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.TASK_ID_LIST;
-import static org.kie.internal.query.QueryParameterIdentifiers.WORK_ITEM_ID_LIST;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,35 +133,7 @@ public class GetTasksByVariousFieldsCommand extends UserGroupCallbackTaskCommand
 	}
 
     
-	public List<TaskSummary> execute(Context cntxt) {
-	    TaskContext context = (TaskContext) cntxt;
-        
-        potentialOwners = populateOrganizationalEntityWithGroupInfo(potentialOwners, context);
-    	businessAdmins = populateOrganizationalEntityWithGroupInfo(businessAdmins, context);
-    	List<String> stakeHolders = new ArrayList<String>();
-    	stakeHolders = populateOrganizationalEntityWithGroupInfo(stakeHolders, context);
-    	
-        Map<String, List<?>> params = new HashMap<String, List<?>>();
-        params.put(WORK_ITEM_ID_LIST, workItemIds);
-        params.put(TASK_ID_LIST, taskIds);
-        params.put(PROCESS_INSTANCE_ID_LIST, processInstanceIds);
-        params.put(BUSINESS_ADMIN_ID_LIST, businessAdmins);
-        params.put(POTENTIAL_OWNER_ID_LIST, potentialOwners);
-        params.put(STAKEHOLDER_ID_LIST, stakeHolders);
-        params.put(ACTUAL_OWNER_ID_LIST, taskOwners);
-        params.put(TASK_STATUS_LIST, statuses);
-        if( maxResults != null && maxResults.intValue() > 0 ) {
-            Integer [] maxResultsArr = { maxResults };
-            params.put(MAX_RESULTS, Arrays.asList(maxResultsArr));
-        }
-       
-        if( userId == null || userId.isEmpty() ) { 
-           throw new IllegalStateException("A user id is required for this operation: " + GetTasksByVariousFieldsCommand.class.getSimpleName() );
-        }
-        return context.getTaskQueryService().getTasksByVariousFields(userId, params, union);
-    }
-
-    public List<Long> getWorkItemIds() {
+	public List<Long> getWorkItemIds() {
         return workItemIds;
     }
 
@@ -232,6 +211,34 @@ public class GetTasksByVariousFieldsCommand extends UserGroupCallbackTaskCommand
 
     public void setMaxResults(Integer maxResults) {
         this.maxResults = maxResults;
+    }
+
+    public List<TaskSummary> execute(Context cntxt) {
+        TaskContext context = (TaskContext) cntxt;
+        
+        potentialOwners = populateOrganizationalEntityWithGroupInfo(potentialOwners, context);
+    	businessAdmins = populateOrganizationalEntityWithGroupInfo(businessAdmins, context);
+    	List<String> stakeHolders = new ArrayList<String>();
+    	stakeHolders = populateOrganizationalEntityWithGroupInfo(stakeHolders, context);
+    	
+        Map<String, List<?>> params = new HashMap<String, List<?>>();
+        params.put(WORK_ITEM_ID_LIST, workItemIds);
+        params.put(TASK_ID_LIST, taskIds);
+        params.put(PROCESS_INSTANCE_ID_LIST, processInstanceIds);
+        params.put(BUSINESS_ADMIN_ID_LIST, businessAdmins);
+        params.put(POTENTIAL_OWNER_ID_LIST, potentialOwners);
+        params.put(STAKEHOLDER_ID_LIST, stakeHolders);
+        params.put(ACTUAL_OWNER_ID_LIST, taskOwners);
+        params.put(TASK_STATUS_LIST, statuses);
+        if( maxResults != null && maxResults.intValue() > 0 ) {
+            Integer [] maxResultsArr = { maxResults };
+            params.put(MAX_RESULTS, Arrays.asList(maxResultsArr));
+        }
+    
+        if( userId == null || userId.isEmpty() ) { 
+           throw new IllegalStateException("A user id is required for this operation: " + GetTasksByVariousFieldsCommand.class.getSimpleName() );
+        }
+        return context.getTaskQueryService().getTasksByVariousFields(userId, params, union);
     }
 
     /**

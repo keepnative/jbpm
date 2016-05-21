@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.jbpm.workflow.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jbpm.process.core.Process;
 
@@ -34,7 +35,7 @@ public interface WorkflowProcess extends org.kie.api.definition.process.Workflow
      * 
      * @return	the imports of this RuleFlow process
      */
-    List<String> getImports();
+    Set<String> getImports();
     
     /**
      * Returns the function imports of this RuleFlow process.
@@ -49,7 +50,7 @@ public interface WorkflowProcess extends org.kie.api.definition.process.Workflow
      * 
      * @param imports	the imports as a List of fully qualified class names
      */
-    void setImports(List<String> imports);
+    void setImports(Set<String> imports);
 
     /**
      * Sets the imports of this RuleFlow process

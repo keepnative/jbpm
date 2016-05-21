@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.jbpm.bpmn2.xml;
 
-import static org.jbpm.bpmn2.xml.ProcessHandler.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,7 @@ import org.drools.core.xml.ExtensibleXmlParser;
 import org.jbpm.bpmn2.core.Error;
 import org.jbpm.bpmn2.core.Escalation;
 import org.jbpm.bpmn2.core.Message;
+import org.jbpm.bpmn2.core.Signal;
 import org.jbpm.compiler.xml.ProcessBuildData;
 import org.jbpm.workflow.core.DroolsAction;
 import org.jbpm.workflow.core.Node;
@@ -97,6 +97,7 @@ public class EndEventHandler extends AbstractNodeHandler {
         }
         NodeContainer nodeContainer = (NodeContainer) parser.getParent();
         nodeContainer.addNode(node);
+        ((ProcessBuildData) parser.getData()).addNode(node);
         return node;
     }
     
@@ -127,15 +128,39 @@ public class EndEventHandler extends AbstractNodeHandler {
         org.w3c.dom.Node xmlNode = element.getFirstChild();
         while (xmlNode != null) {
             String nodeName = xmlNode.getNodeName();
-            if ("dataInputAssociation".equals(nodeName)) {
+            if ("dataInput".equals(nodeName)) {
+                String id = ((Element) xmlNode).getAttribute("id");
+                String inputName = ((Element) xmlNode).getAttribute("name");
+                dataInputs.put(id, inputName);
+            } else if ("dataInputAssociation".equals(nodeName)) {
                 readEndDataInputAssociation(xmlNode, endNode);
             } else if ("signalEventDefinition".equals(nodeName)) {
                 String signalName = ((Element) xmlNode).getAttribute("signalRef");
                 String variable = (String) endNode.getMetaData("MappingVariable");
+                
+                Map<String, Signal> signals = (Map<String, Signal>) ((ProcessBuildData) parser.getData()).getMetaData("Signals");
+                
+                if (signals != null && signals.containsKey(signalName)) {
+                    Signal signal = signals.get(signalName);                      
+                    signalName = signal.getName();
+                    if (signalName == null) {
+                        throw new IllegalArgumentException("Signal definition must have a name attribute");
+                    }
+                }
+
+                endNode.setMetaData("EventType", "signal");
+                endNode.setMetaData("Ref", signalName);
+                endNode.setMetaData("Variable", variable);
+                
+                // check if signal should be send async
+                if (dataInputs.containsValue("async")) {
+                    signalName = "ASYNC-" + signalName;
+                }
+                
+                String signalExpression = getSignalExpression(endNode, signalName, variable);
+                
                 List<DroolsAction> actions = new ArrayList<DroolsAction>();
-                actions.add(new DroolsConsequenceAction("mvel",
-                    RUNTIME_SIGNAL_EVENT
-                        + signalName + "\", " + (variable == null ? "null" : variable) + ")"));
+                actions.add(new DroolsConsequenceAction("mvel",signalExpression));                        
                 endNode.setActions(EndNode.EVENT_NODE_ENTER, actions);
             }
             xmlNode = xmlNode.getNextSibling();
@@ -169,8 +194,11 @@ public class EndEventHandler extends AbstractNodeHandler {
                 actions.add(new DroolsConsequenceAction("java",
                     "org.drools.core.process.instance.impl.WorkItemImpl workItem = new org.drools.core.process.instance.impl.WorkItemImpl();" + EOL +
                     "workItem.setName(\"Send Task\");" + EOL + 
+                    "workItem.setNodeInstanceId(kcontext.getNodeInstance().getId());" + EOL + 
+                    "workItem.setNodeId(kcontext.getNodeInstance().getNodeId());" + EOL +
                     "workItem.setParameter(\"MessageType\", \"" + message.getType() + "\");" + EOL + 
                     (variable == null ? "" : "workItem.setParameter(\"Message\", " + variable + ");" + EOL) +
+					"workItem.setDeploymentId((String) kcontext.getKnowledgeRuntime().getEnvironment().get(\"deploymentId\"));" + EOL +
                     "((org.drools.core.process.instance.WorkItemManager) kcontext.getKnowledgeRuntime().getWorkItemManager()).internalExecuteWorkItem(workItem);"));
                 endNode.setActions(EndNode.EVENT_NODE_ENTER, actions);
             }

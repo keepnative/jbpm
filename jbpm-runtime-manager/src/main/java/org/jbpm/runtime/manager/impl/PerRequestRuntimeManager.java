@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.jbpm.runtime.manager.impl;
 import org.jbpm.runtime.manager.impl.factory.LocalTaskServiceFactory;
 import org.jbpm.runtime.manager.impl.tx.DestroySessionTransactionSynchronization;
 import org.jbpm.runtime.manager.impl.tx.DisposeSessionTransactionSynchronization;
+import org.jbpm.services.task.impl.TaskContentRegistry;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.manager.Context;
 import org.kie.api.runtime.manager.RuntimeEngine;
@@ -27,6 +28,8 @@ import org.kie.internal.runtime.manager.Disposable;
 import org.kie.internal.runtime.manager.InternalRuntimeManager;
 import org.kie.internal.runtime.manager.SessionFactory;
 import org.kie.internal.runtime.manager.TaskServiceFactory;
+import org.kie.internal.runtime.manager.context.EmptyContext;
+import org.kie.internal.task.api.ContentMarshallerContext;
 import org.kie.internal.task.api.InternalTaskService;
 
 /**
@@ -62,7 +65,13 @@ public class PerRequestRuntimeManager extends AbstractRuntimeManager {
     	checkPermission();
     	RuntimeEngine runtime = null;
         if (local.get() != null) {
-            return local.get();
+        	RuntimeEngine engine = local.get();
+        	// check if engine is not already disposed as afterCompletion might be issued from another thread
+        	if (engine != null && ((RuntimeEngineImpl) engine).isDisposed()) {
+        		return null;
+        	}
+        	
+        	return engine;
         }
     	if (engineInitEager) {
 	        InternalTaskService internalTaskService = (InternalTaskService) taskServiceFactory.newTaskService();	        
@@ -82,6 +91,17 @@ public class PerRequestRuntimeManager extends AbstractRuntimeManager {
         return runtime;
     }
     
+    @Override
+    public void signalEvent(String type, Object event) {
+        RuntimeEngine runtimeEngine = getRuntimeEngine(EmptyContext.get());
+        
+        runtimeEngine.getKieSession().signalEvent(type, event);
+        
+        if (canDispose(runtimeEngine)) {
+            disposeRuntimeEngine(runtimeEngine);
+        }
+    }
+    
 
     @Override
     public void validate(KieSession ksession, Context<?> context) throws IllegalStateException {
@@ -99,21 +119,29 @@ public class PerRequestRuntimeManager extends AbstractRuntimeManager {
     	if (isClosed()) {
     		throw new IllegalStateException("Runtime manager " + identifier + " is already closed");
     	}
-        local.set(null);
-        try {
-            if (canDestroy(runtime)) {
-                runtime.getKieSession().destroy();
-            } else {
+    	if (canDispose(runtime)) {
+            local.set(null);
+            try {
+                if (canDestroy(runtime)) {
+                    runtime.getKieSession().destroy();
+                } else {
+                    if (runtime instanceof Disposable) {
+                        ((Disposable) runtime).dispose();
+                    }
+                }
+            } catch (Exception e) {
+                // do nothing
                 if (runtime instanceof Disposable) {
                     ((Disposable) runtime).dispose();
                 }
             }
-        } catch (Exception e) {
-            // do nothing
-            if (runtime instanceof Disposable) {
-                ((Disposable) runtime).dispose();
-            }
-        }
+    	}
+    }
+
+    @Override
+    public void softDispose(RuntimeEngine runtimeEngine) {        
+        super.softDispose(runtimeEngine);
+        local.set(null);
     }
 
     @Override
@@ -121,7 +149,7 @@ public class PerRequestRuntimeManager extends AbstractRuntimeManager {
         try {
             if (!(taskServiceFactory instanceof LocalTaskServiceFactory)) {
                 // if it's CDI based (meaning single application scoped bean) we need to unregister context
-                removeRuntimeFromTaskService((InternalTaskService) taskServiceFactory.newTaskService());
+                removeRuntimeFromTaskService();
             }
         } catch(Exception e) {
            // do nothing 
@@ -148,6 +176,8 @@ public class PerRequestRuntimeManager extends AbstractRuntimeManager {
 
     @Override
     public void init() {
+    	TaskContentRegistry.get().addMarshallerContext(getIdentifier(), 
+    			new ContentMarshallerContext(environment.getEnvironment(), environment.getClassLoader()));
         configureRuntimeOnTaskService((InternalTaskService) taskServiceFactory.newTaskService(), null);
     }
     

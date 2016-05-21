@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.persistence.processinstance;
 
 import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
@@ -7,6 +22,7 @@ import org.drools.core.impl.StatefulKnowledgeSessionImpl;
 import org.drools.core.marshalling.impl.MarshallerReaderContext;
 import org.drools.core.marshalling.impl.MarshallerWriteContext;
 import org.drools.core.marshalling.impl.PersisterHelper;
+import org.drools.core.marshalling.impl.ProcessMarshallerWriteContext;
 import org.drools.core.marshalling.impl.ProtobufMarshaller;
 import org.drools.persistence.Transformable;
 import org.hibernate.annotations.GenericGenerator;
@@ -161,7 +177,7 @@ public class ProcessInstanceInfo extends AbstractBaseEntityWithDomainNoAuditing 
                                               Environment env,
                                               boolean readOnly) {
         this.env = env;
-        if ( processInstance == null ) {        	
+        if ( processInstance == null ) {
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream( processInstanceByteArray );
                 MarshallerReaderContext context = new MarshallerReaderContext( bais,
@@ -209,12 +225,16 @@ public class ProcessInstanceInfo extends AbstractBaseEntityWithDomainNoAuditing 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         boolean variablesChanged = false;
         try {
-            MarshallerWriteContext context = new MarshallerWriteContext( baos,
+            ProcessMarshallerWriteContext context = new ProcessMarshallerWriteContext( baos,
                                                                          null,
                                                                          null,
                                                                          null,
                                                                          null,
                                                                          this.env );
+            context.setProcessInstanceId(processInstance.getId());
+            context.setState(processInstance.getState() == ProcessInstance.STATE_ACTIVE ?
+                    ProcessMarshallerWriteContext.STATE_ACTIVE:ProcessMarshallerWriteContext.STATE_COMPLETED);
+
             String processType = ((ProcessInstanceImpl) processInstance).getProcess().getType();
             saveProcessInstanceType( context,
                                      processInstance,

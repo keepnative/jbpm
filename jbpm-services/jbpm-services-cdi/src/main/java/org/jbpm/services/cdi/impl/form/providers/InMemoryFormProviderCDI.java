@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss by Red Hat.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,15 @@
  */
 package org.jbpm.services.cdi.impl.form.providers;
 
+import javax.inject.Inject;
+import org.jbpm.kie.services.impl.FormManagerService;
 import org.jbpm.kie.services.impl.form.provider.InMemoryFormProvider;
 
 public class InMemoryFormProviderCDI extends InMemoryFormProvider {
+    
+    @Inject
+    @Override
+    public void setFormManagerService(FormManagerService formManagerService){
+        super.setFormManagerService(formManagerService);
+    }
 }

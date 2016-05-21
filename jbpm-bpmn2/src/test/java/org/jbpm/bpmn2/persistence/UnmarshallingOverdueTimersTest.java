@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.bpmn2.persistence;
 
 import static org.jbpm.persistence.util.PersistenceUtil.JBPM_PERSISTENCE_UNIT_NAME;
@@ -13,6 +28,7 @@ import java.util.Map;
 import org.jbpm.bpmn2.concurrency.MultipleProcessesPerThreadTest;
 import org.jbpm.persistence.util.PersistenceUtil;
 import org.jbpm.test.util.AbstractBaseTest;
+import org.jbpm.test.util.CountDownProcessEventListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,14 +92,15 @@ public class UnmarshallingOverdueTimersTest extends AbstractBaseTest {
         return JPAKnowledgeService.loadStatefulKnowledgeSession(ksessionId, kbase, null, env);
     }
 
-    private static long seconds = 10;
+    private static long seconds = 2;
     private static String timeUnit = "s";
     private static String bpmn2FileName = "BPMN2-TimerInterrupted.bpmn2";
 
     private static boolean debug = true;
     
-    @Test
+    @Test(timeout=10000)
     public void startDisposeAndReloadTimerProcess() throws Exception {
+        CountDownProcessEventListener countDownListener = new CountDownProcessEventListener("timer", 1);
         if( debug ) { 
             String shellVar = "TEST";
             String shellVarVal = System.getenv(shellVar);
@@ -100,7 +117,7 @@ public class UnmarshallingOverdueTimersTest extends AbstractBaseTest {
         if (sessionPropVal == null || debug ) {
             KnowledgeBase kbase = loadKnowledgeBase(bpmn2FileName);
             StatefulKnowledgeSession ksession = createStatefulKnowledgeSession(kbase);
-
+            ksession.addEventListener(countDownListener);
             // setup parameters
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("time", seconds + timeUnit);
@@ -138,21 +155,17 @@ public class UnmarshallingOverdueTimersTest extends AbstractBaseTest {
                 logger.info("Please wait at least {} [{}]", (seconds + timeUnit),  sdf.format(cal.getTime()));
             }
         } 
-        
-        if( debug ) { 
-            long wait = (long) ((double) seconds * 1000d * 1.1);
-            logger.debug("sleeping {} seconds", wait);
-            Thread.sleep(seconds * 1000 );
-        }
+       
         
         if( sessionPropVal != null || debug ) {
             // reload session
             int ksessionId = Integer.parseInt(sessionPropVal);
             StatefulKnowledgeSession ksession = reloadStatefulKnowledgeSession(bpmn2FileName, ksessionId);
+            ksession.addEventListener(countDownListener);
             long processInstanceId = Integer.parseInt(processPropVal);
 
             logger.debug("! waiting 5 seconds for timer to fire");
-            Thread.sleep(5 * 1000);
+            countDownListener.waitTillCompleted();
             
             ProcessInstance processInstance = ksession.getProcessInstance(processInstanceId);
             if( processInstance != null ) { 

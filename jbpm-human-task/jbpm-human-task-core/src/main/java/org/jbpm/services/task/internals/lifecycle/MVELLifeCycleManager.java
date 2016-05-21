@@ -1,4 +1,19 @@
 /*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -128,11 +143,19 @@ public class MVELLifeCycleManager implements LifeCycleManager {
                     }
                 }
             }
+            
+
+            if (!command.isGroupTargetEntityAllowed() && targetEntity instanceof Group) {
+                String errorMessage = "User '" + user + "' was unable to execute operation '" + operation + "' on task id " + task.getId() + " due to 'target entity cannot be group'";
+                throw new PermissionDeniedException(errorMessage); 
+            }
         }
         if (!statusMatched) {
             String errorMessage = "User '" + user + "' was unable to execute operation '" + operation + "' on task id " + task.getId() + " due to a no 'current status' match";
             throw new PermissionDeniedException(errorMessage);
         }
+        
+
     }
 
     private boolean isAllowed(final OperationCommand command, final Task task, final User user,
@@ -150,9 +173,10 @@ public class MVELLifeCycleManager implements LifeCycleManager {
                     break;
                 }
                 case Initiator: {
-                    operationAllowed = (task.getTaskData().getCreatedBy() != null
-                            && (task.getTaskData().getCreatedBy().equals(user))
-                            || (groupIds != null && groupIds.contains(task.getTaskData().getCreatedBy().getId())));
+                    operationAllowed = (
+                            task.getTaskData().getCreatedBy() != null
+                            && (task.getTaskData().getCreatedBy().equals(user)
+                            || groupIds != null && groupIds.contains(task.getTaskData().getCreatedBy().getId())));
                     break;
                 }
                 case PotentialOwner: {
@@ -161,6 +185,10 @@ public class MVELLifeCycleManager implements LifeCycleManager {
                 }
                 case BusinessAdministrator: {
                     operationAllowed = isAllowed(user, groupIds, (List<OrganizationalEntity>) task.getPeopleAssignments().getBusinessAdministrators());
+                    break;
+                }
+                case TaskStakeholders: {
+                    operationAllowed = isAllowed(user, groupIds, (List<OrganizationalEntity>) ((InternalPeopleAssignments) task.getPeopleAssignments()).getTaskStakeholders());
                     break;
                 }
                 case Anyone: {
@@ -201,7 +229,7 @@ public class MVELLifeCycleManager implements LifeCycleManager {
 
         final PeopleAssignments people = task.getPeopleAssignments();
         final InternalTaskData taskData = (InternalTaskData) task.getTaskData();
-
+        
         if (command.getNewStatus() != null) {
             taskData.setStatus(command.getNewStatus());
         } else if (command.isSetToPreviousStatus()) {
@@ -292,7 +320,7 @@ public class MVELLifeCycleManager implements LifeCycleManager {
                 case Fail: {
                     if (data != null) {
 
-                        FaultData faultData = ContentMarshallerHelper.marshalFault(data, null);
+                        FaultData faultData = ContentMarshallerHelper.marshalFault(task, data, null);
                         Content content = TaskModelProvider.getFactory().newContent();
                         ((InternalContent)content).setContent(faultData.getContent());
                         persistenceContext.persistContent(content);
@@ -352,17 +380,17 @@ public class MVELLifeCycleManager implements LifeCycleManager {
                 case Complete: {
                     if (data != null) {
                         
-                        taskContentService.addContent(taskId, data);
+                        taskContentService.addOutputContent(taskId, data);
                         
                     }
-
                     taskEventSupport.fireAfterTaskCompleted(task, context);
                     break;
                 }
-                case Delegate: {
-                	taskEventSupport.fireAfterTaskDelegated(task, context);
+                case Delegate: {                	
                     // This is a really bad hack to execut the correct behavior
                     ((InternalTaskData) task.getTaskData()).setStatus(Status.Reserved);
+                    taskEventSupport.fireAfterTaskDelegated(task, context);
+                    break;
                 }
                 case Exit: {
                 	taskEventSupport.fireAfterTaskExited(task, context);

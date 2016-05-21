@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss by Red Hat.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,6 +179,16 @@ public class TaskFluent {
         }
         assignments.getBusinessAdministrators().add(new GroupImpl(groupId));
         
+        return this;
+    }
+     
+    public TaskFluent setFormName(String formName){
+        task.setFormName(formName);
+        return this;
+    }
+    
+    public TaskFluent setDeploymentID(String deploymentId){
+        ((TaskDataImpl)task.getTaskData()).setDeploymentId(deploymentId);
         return this;
     }
 

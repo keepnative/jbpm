@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.jbpm.services.task.events.TaskEventSupport;
 import org.jbpm.services.task.utils.ContentMarshallerHelper;
 import org.kie.api.task.model.Content;
 import org.kie.api.task.model.Task;
@@ -36,28 +37,37 @@ import org.kie.internal.task.api.model.InternalTaskData;
 public class TaskContentServiceImpl implements TaskContentService {
 
     private TaskPersistenceContext persistenceContext;
+    private TaskEventSupport taskEventSupport;
+    
+    private org.kie.internal.task.api.TaskContext context;
 
     public TaskContentServiceImpl() {
     }
     
-    public TaskContentServiceImpl(TaskPersistenceContext persistenceContext) {
-    	this.persistenceContext = persistenceContext;
+    public TaskContentServiceImpl(org.kie.internal.task.api.TaskContext context, TaskPersistenceContext persistenceContext, TaskEventSupport taskEventSupport) {
+    	this.context = context;    	
+        this.persistenceContext = persistenceContext;
+    	this.taskEventSupport = taskEventSupport;
     }
 
     public void setPersistenceContext(TaskPersistenceContext persistenceContext) {
         this.persistenceContext = persistenceContext;
     }
     
+    public void setTaskEventSupport(TaskEventSupport taskEventSupport) {
+        this.taskEventSupport = taskEventSupport;
+    }
+    
     @SuppressWarnings("unchecked")
-	public long addContent(long taskId, Map<String, Object> params) {
+	public long addOutputContent(long taskId, Map<String, Object> params) {
         Task task = persistenceContext.findTask(taskId);
         long outputContentId = task.getTaskData().getOutputContentId();
         Content outputContent = persistenceContext.findContent(outputContentId);
-        
+
         long contentId = -1;
         if (outputContent == null) { 
             ContentMarshallerContext context = getMarshallerContext(task);
-            ContentData outputContentData = ContentMarshallerHelper.marshal(params, context.getEnvironment());
+            ContentData outputContentData = ContentMarshallerHelper.marshal(task, params, context.getEnvironment());
             Content content = TaskModelProvider.getFactory().newContent();
             ((InternalContent) content).setContent(outputContentData.getContent());
             persistenceContext.persistContent(content);
@@ -71,22 +81,26 @@ public class TaskContentServiceImpl implements TaskContentService {
             if(unmarshalledObject != null && unmarshalledObject instanceof Map){
                 ((Map<String, Object>)unmarshalledObject).putAll(params);
             }
-            ContentData outputContentData = ContentMarshallerHelper.marshal(unmarshalledObject, context.getEnvironment());
+            ContentData outputContentData = ContentMarshallerHelper.marshal(task, unmarshalledObject, context.getEnvironment());
             ((InternalContent)outputContent).setContent(outputContentData.getContent());
             persistenceContext.persistContent(outputContent);
             contentId = outputContentId;
         }
+        
+        taskEventSupport.fireAfterTaskOutputVariablesChanged(task, context, params);
+        
         return contentId;
     }
 
-    public long addContent(long taskId, Content content) {
+    // TODO: if there's an existing document content entity, we lose all link to that through this!
+    public long setDocumentContent(long taskId, Content content) {
         Task task = persistenceContext.findTask(taskId);
         persistenceContext.persistContent(content);
         ((InternalTaskData) task.getTaskData()).setDocumentContentId(content.getId());
         return content.getId();
     }
 
-    public void deleteContent(long taskId, long contentId) {
+    public void deleteDocumentContent(long taskId, long contentId) {
         Task task = persistenceContext.findTask(taskId);
         ((InternalTaskData) task.getTaskData()).setDocumentContentId(-1);
         Content content = persistenceContext.findContent(contentId);

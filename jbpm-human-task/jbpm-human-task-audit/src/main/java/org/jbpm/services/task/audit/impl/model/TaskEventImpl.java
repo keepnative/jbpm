@@ -1,4 +1,19 @@
 /*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -61,6 +76,9 @@ public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implem
   @Column(name = "USER_ID")
   private String userId;
 
+  @Column(name = "MESSAGE")
+  private String message;
+
   @Temporal(javax.persistence.TemporalType.TIMESTAMP)
   @Column(name = "LOG_TIME")
   private Date logTime;
@@ -93,6 +111,12 @@ public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implem
 
   public TaskEventImpl(Long taskId, TaskEventType type, Long processInstanceId, Long workItemId, String userId) {
     this(taskId, type, processInstanceId, workItemId, userId, new Date());
+
+  }
+
+  public TaskEventImpl(Long taskId, TaskEventType type, Long processInstanceId, Long workItemId, String userId, String message) {
+    this(taskId, type, processInstanceId, workItemId, userId, new Date());
+    this.message = message;
 
   }
 
@@ -130,16 +154,71 @@ public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     return workItemId;
   }
 
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
   @Override
   public void readExternal(ObjectInput in) throws IOException,
           ClassNotFoundException {
-    // TODO Auto-generated method stub
+	  id = in.readLong();
 
+	  processInstanceId = in.readLong();
+
+	  taskId = in.readLong();
+
+	  type = TaskEventType.valueOf(in.readUTF());
+
+      message = in.readUTF();
+
+	  userId = in.readUTF();
+
+	  workItemId = in.readLong();
+
+	  if (in.readBoolean()) {
+          logTime = new Date(in.readLong());
+      }
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    // TODO Auto-generated method stub
+	  out.writeLong( id );
+
+	  out.writeLong( processInstanceId );
+
+	  out.writeLong( taskId );
+
+	  if (type != null) {
+      	out.writeUTF(type.name());
+      } else {
+      	out.writeUTF("");
+      }
+
+      if (message != null) {
+        out.writeUTF(message);
+      } else {
+        out.writeUTF("");
+      }
+
+
+	  if (userId != null) {
+      	out.writeUTF(userId);
+      } else {
+      	out.writeUTF("");
+      }
+
+	  out.writeLong( workItemId );
+
+	  if (logTime != null) {
+          out.writeBoolean(true);
+          out.writeLong(logTime.getTime());
+      } else {
+          out.writeBoolean(false);
+      }
 
   }
 
@@ -151,6 +230,7 @@ public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     hash = 97 * hash + (this.taskId != null ? this.taskId.hashCode() : 0);
     hash = 97 * hash + (this.workItemId != null ? this.workItemId.hashCode() : 0);
     hash = 97 * hash + (this.type != null ? this.type.hashCode() : 0);
+    hash = 97 * hash + (this.message != null ? this.message.hashCode() : 0);
     hash = 97 * hash + (this.processInstanceId != null ? this.processInstanceId.hashCode() : 0);
     hash = 97 * hash + (this.userId != null ? this.userId.hashCode() : 0);
     hash = 97 * hash + (this.logTime != null ? this.logTime.hashCode() : 0);
@@ -179,6 +259,9 @@ public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implem
       return false;
     }
     if (this.type != other.type) {
+      return false;
+    }
+    if (!this.message.equals(other.message) ) {
       return false;
     }
     if (this.processInstanceId != other.processInstanceId && (this.processInstanceId == null || !this.processInstanceId.equals(other.processInstanceId))) {

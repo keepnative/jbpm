@@ -1,5 +1,5 @@
 /**
- * Copyright 2005 JBoss Inc
+ * Copyright 2005 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.jbpm.process.instance.impl.ConstraintEvaluator;
 import org.jbpm.workflow.core.impl.NodeImpl;
 import org.jbpm.workflow.instance.WorkflowProcessInstance;
 import org.jbpm.workflow.instance.WorkflowRuntimeException;
+import org.jbpm.workflow.instance.node.ActionNodeInstance;
 import org.jbpm.workflow.instance.node.CompositeNodeInstance;
 import org.kie.api.definition.process.Connection;
 import org.kie.api.definition.process.Node;
@@ -59,7 +60,7 @@ import org.slf4j.LoggerFactory;
 public abstract class NodeInstanceImpl implements org.jbpm.workflow.instance.NodeInstance, Serializable {
 
 	private static final long serialVersionUID = 510l;
-	private static final Logger logger = LoggerFactory.getLogger(NodeInstanceImpl.class);
+	protected static final Logger logger = LoggerFactory.getLogger(NodeInstanceImpl.class);
 	
 	private long id;
     private long nodeId;
@@ -135,7 +136,8 @@ public abstract class NodeInstanceImpl implements org.jbpm.workflow.instance.Nod
     public void cancel() {
         nodeInstanceContainer.removeNodeInstance(this);
         boolean hidden = false;
-    	if (getNode().getMetaData().get("hidden") != null) {
+        Node node = getNode();
+    	if (node != null && node.getMetaData().get("hidden") != null) {
     		hidden = true;
     	}
     	if (!hidden) {
@@ -185,8 +187,8 @@ public abstract class NodeInstanceImpl implements org.jbpm.workflow.instance.Nod
     public abstract void internalTrigger(NodeInstance from, String type);
    
     /**
-     * This method is used in both instances of the {@link extendednodeinstanceimpl} 
-     * and {@link actionnodeinstance} instances in order to handle 
+     * This method is used in both instances of the {@link ExtendedNodeInstanceImpl}
+     * and {@link ActionNodeInstance} instances in order to handle 
      * exceptions thrown when executing actions.
      * 
      * @param action An {@link Action} instance.

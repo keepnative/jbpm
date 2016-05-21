@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.process.audit.event;
 
 import java.util.Date;
@@ -16,6 +31,7 @@ import org.kie.api.event.process.ProcessStartedEvent;
 import org.kie.api.event.process.ProcessVariableChangedEvent;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.process.ProcessInstance;
+import org.kie.internal.process.CorrelationKey;
 
 public class DefaultAuditEventBuilderImpl implements AuditEventBuilder {
 
@@ -28,13 +44,19 @@ public class DefaultAuditEventBuilderImpl implements AuditEventBuilder {
         log.setProcessVersion(pi.getProcess().getVersion());
         log.setStatus(ProcessInstance.STATE_ACTIVE);
         log.setProcessInstanceDescription( pi.getDescription() );
+        // store correlation key in its external form
+        CorrelationKey correlationKey = (CorrelationKey) pi.getMetaData().get("CorrelationKey");
+        if (correlationKey != null) {
+        	log.setCorrelationKey(correlationKey.toExternalForm());
+        }
         try {
             long parentProcessInstanceId = (Long) pi.getMetaData().get("ParentProcessInstanceId");
             log.setParentProcessInstanceId(parentProcessInstanceId);
         } catch (Exception e) {
             //in case of problems with getting hold of parentProcessInstanceId don't break the operation
-        }        
-        
+            log.setParentProcessInstanceId(-1L);
+        }
+
         return log;
     }
 

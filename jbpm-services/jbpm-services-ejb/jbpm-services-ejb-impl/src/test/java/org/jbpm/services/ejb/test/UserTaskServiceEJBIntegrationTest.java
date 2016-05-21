@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss by Red Hat.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ public class UserTaskServiceEJBIntegrationTest extends AbstractTestSupport {
             
         }
         MavenRepository repository = getMavenRepository();
-        repository.deployArtifact(releaseId, kJar1, pom);
+        repository.installArtifact(releaseId, kJar1, pom);
 	}
 	
 	private List<DeploymentUnit> units = new ArrayList<DeploymentUnit>();
@@ -584,7 +584,7 @@ public class UserTaskServiceEJBIntegrationTest extends AbstractTestSupport {
     	assertNotNull(attachments);
     	assertEquals(0, attachments.size());
     	
-    	Long attId = userTaskService.addAttachment(taskId, "john", "String attachment");
+    	Long attId = userTaskService.addAttachment(taskId, "john", "my attachment", "String attachment");
     	assertNotNull(attId);
     	
     	attachments = userTaskService.getAttachmentsByTaskId(taskId);
@@ -598,6 +598,7 @@ public class UserTaskServiceEJBIntegrationTest extends AbstractTestSupport {
     	Attachment attachment = userTaskService.getAttachmentById(taskId, attId);
     	assertNotNull(attachment);
     	assertEquals("john", attachment.getAttachedBy().getId());
+    	assertEquals("my attachment", attachment.getName());
     	assertNotNull(attachment.getAttachmentContentId());
     	
     	userTaskService.deleteAttachment(taskId, attId);

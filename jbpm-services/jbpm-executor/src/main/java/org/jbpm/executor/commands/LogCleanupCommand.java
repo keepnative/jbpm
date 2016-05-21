@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.executor.commands;
 
 import java.text.SimpleDateFormat;
@@ -8,12 +23,12 @@ import javax.persistence.EntityManagerFactory;
 import org.jbpm.executor.impl.jpa.ExecutorJPAAuditService;
 import org.jbpm.process.core.timer.DateTimeUtils;
 import org.jbpm.runtime.manager.impl.jpa.EntityManagerFactoryManager;
+import org.kie.api.executor.Command;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
+import org.kie.api.executor.Reoccurring;
+import org.kie.api.executor.STATUS;
 import org.kie.api.runtime.process.ProcessInstance;
-import org.kie.internal.executor.api.Command;
-import org.kie.internal.executor.api.CommandContext;
-import org.kie.internal.executor.api.ExecutionResults;
-import org.kie.internal.executor.api.Reoccurring;
-import org.kie.internal.executor.api.STATUS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +158,7 @@ public class LogCleanupCommand implements Command, Reoccurring {
 		if (!skipTaskLog) {
 			// task tables
 			long taLogsRemoved = 0l;
-			taLogsRemoved = auditLogService.auditTaskInstanceLogDelete()
+			taLogsRemoved = auditLogService.auditTaskDelete()
 			.processId(forProcess)		
 			.dateRangeEnd(olderThan==null?null:formatToUse.parse(olderThan))
 			.deploymentId(forDeployment)

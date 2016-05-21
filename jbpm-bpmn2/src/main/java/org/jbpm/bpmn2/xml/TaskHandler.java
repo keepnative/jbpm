@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.jbpm.bpmn2.xml;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ import java.util.Map;
 import org.drools.core.process.core.Work;
 import org.drools.core.process.core.impl.WorkImpl;
 import org.drools.core.xml.ExtensibleXmlParser;
+import org.jbpm.bpmn2.core.ItemDefinition;
+import org.jbpm.compiler.xml.ProcessBuildData;
 import org.jbpm.process.core.impl.DataTransformerRegistry;
 import org.jbpm.workflow.core.Node;
 import org.jbpm.workflow.core.NodeContainer;
@@ -42,6 +45,10 @@ import org.xml.sax.SAXException;
 public class TaskHandler extends AbstractNodeHandler {
     
 	private DataTransformerRegistry transformerRegistry = DataTransformerRegistry.get();
+	private Map<String, ItemDefinition> itemDefinitions; 
+	
+	 Map<String, String> dataTypeInputs = new HashMap<String, String>();
+     Map<String, String> dataTypeOutputs = new HashMap<String, String>();
 
     protected Node createNode(Attributes attrs) {
         return new WorkItemNode();
@@ -54,6 +61,11 @@ public class TaskHandler extends AbstractNodeHandler {
     protected void handleNode(final Node node, final Element element, final String uri, 
             final String localName, final ExtensibleXmlParser parser) throws SAXException {
     	super.handleNode(node, element, uri, localName, parser);
+    	
+    	itemDefinitions = (Map<String, ItemDefinition>)((ProcessBuildData) parser.getData()).getMetaData("ItemDefinitions");
+    	dataTypeInputs.clear();
+    	dataTypeOutputs.clear();
+    	
     	WorkItemNode workItemNode = (WorkItemNode) node;
         String name = getTaskName(element);
         Work work = new WorkImpl();
@@ -71,6 +83,8 @@ public class TaskHandler extends AbstractNodeHandler {
         	}
     		xmlNode = xmlNode.getNextSibling();
         }
+        workItemNode.setMetaData("DataInputs", new HashMap<String, String>(dataTypeInputs) );
+        workItemNode.setMetaData("DataOutputs", new HashMap<String, String>(dataTypeOutputs) );
         handleScript(workItemNode, element, "onEntry");
         handleScript(workItemNode, element, "onExit");
         
@@ -85,6 +99,51 @@ public class TaskHandler extends AbstractNodeHandler {
     
     protected String getTaskName(final Element element) {
         return element.getAttribute("taskName");
+    }
+    
+    protected void readIoSpecification(org.w3c.dom.Node xmlNode, Map<String, String> dataInputs, Map<String, String> dataOutputs) {
+        
+        dataTypeInputs.clear();
+        dataTypeOutputs.clear();
+        
+        org.w3c.dom.Node subNode = xmlNode.getFirstChild();
+        while (subNode instanceof Element) {
+            String subNodeName = subNode.getNodeName();
+            if ("dataInput".equals(subNodeName)) {
+                String id = ((Element) subNode).getAttribute("id");
+                String inputName = ((Element) subNode).getAttribute("name");
+                dataInputs.put(id, inputName);
+                
+                String itemSubjectRef = ((Element) subNode).getAttribute("itemSubjectRef");                
+                if (itemSubjectRef == null || itemSubjectRef.isEmpty()) {
+                    String dataType = ((Element) subNode).getAttribute("dtype");
+                    if (dataType == null || dataType.isEmpty()) {
+                        dataType = "java.lang.String";
+                    }
+                    dataTypeInputs.put(inputName, dataType);
+                } else {
+                    dataTypeInputs.put(inputName, itemDefinitions.get(itemSubjectRef).getStructureRef());
+                }
+            }
+            if ("dataOutput".equals(subNodeName)) {
+                String id = ((Element) subNode).getAttribute("id");
+                String outputName = ((Element) subNode).getAttribute("name");
+                dataOutputs.put(id, outputName);
+                
+                String itemSubjectRef = ((Element) subNode).getAttribute("itemSubjectRef");
+                
+                if (itemSubjectRef == null || itemSubjectRef.isEmpty()) {
+                    String dataType = ((Element) subNode).getAttribute("dtype");
+                    if (dataType == null || dataType.isEmpty()) {
+                        dataType = "java.lang.String";
+                    }
+                    dataTypeOutputs.put(outputName, dataType);
+                } else {
+                    dataTypeOutputs.put(outputName, itemDefinitions.get(itemSubjectRef).getStructureRef());
+                }
+            }
+            subNode = subNode.getNextSibling();
+        }
     }
 
     protected void readDataInputAssociation(org.w3c.dom.Node xmlNode, WorkItemNode workItemNode, Map<String, String> dataInputs) {
@@ -201,6 +260,7 @@ public class TaskHandler extends AbstractNodeHandler {
 		Node node = (Node) parser.getCurrent();
 		// determine type of event definition, so the correct type of node can be generated
     	handleNode(node, element, uri, localName, parser);
+        
 		org.w3c.dom.Node xmlNode = element.getFirstChild();
 		int uniqueIdGen = 1;
 		while (xmlNode != null) {
@@ -212,18 +272,26 @@ public class TaskHandler extends AbstractNodeHandler {
 				String uniqueId = (String) node.getMetaData().get("UniqueId");
 				forEachNode.setMetaData("UniqueId", uniqueId);
 				node.setMetaData("UniqueId", uniqueId + ":" + uniqueIdGen++);
-				node.setMetaData("hidden", true);
 				forEachNode.addNode(node);
 				forEachNode.linkIncomingConnections(NodeImpl.CONNECTION_DEFAULT_TYPE, node.getId(), NodeImpl.CONNECTION_DEFAULT_TYPE);
 				forEachNode.linkOutgoingConnections(node.getId(), NodeImpl.CONNECTION_DEFAULT_TYPE, NodeImpl.CONNECTION_DEFAULT_TYPE);
+				
+				Node orignalNode = node;				
 				node = forEachNode;
 				handleForEachNode(node, element, uri, localName, parser);
+				// remove output collection data output of for each to avoid problems when running in variable strict mode
+				if (orignalNode instanceof WorkItemNode) {
+					((WorkItemNode)orignalNode).adjustOutMapping(forEachNode.getOutputCollectionExpression());
+				}
+								
 				break;
 			}
 			xmlNode = xmlNode.getNextSibling();
 		}
 		NodeContainer nodeContainer = (NodeContainer) parser.getParent();
 		nodeContainer.addNode(node);
+		((ProcessBuildData) parser.getData()).addNode(node);
+		       
 		return node;
 	}
     

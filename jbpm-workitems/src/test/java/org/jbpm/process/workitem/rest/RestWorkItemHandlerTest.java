@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.process.workitem.rest;
 
 import static org.junit.Assert.assertEquals;
@@ -50,6 +65,7 @@ public class RestWorkItemHandlerTest {
     @SuppressWarnings({ "rawtypes"})
     @BeforeClass
     public static void initialize() throws Exception {
+
         SimpleRESTApplication application = new SimpleRESTApplication();
         RuntimeDelegate delegate = RuntimeDelegate.getInstance();
 
@@ -303,6 +319,138 @@ public class RestWorkItemHandlerTest {
         	assertEquals(serverURL+"/notexisting", e.getEndoint());
         	assertEquals("", e.getResponse());
         }
+    }
+    
+    @Test
+    public void testGETOperationWithXmlTrasformation() {
+        RESTWorkItemHandler handler = new RESTWorkItemHandler();
+        
+        WorkItemImpl workItem = new WorkItemImpl();
+        workItem.setParameter( "Url", serverURL + "/xml");
+        workItem.setParameter( "Method", "GET" );
+        workItem.setParameter( "ResultClass", Person.class.getName() );
+        
+        
+        WorkItemManager manager = new TestWorkItemManager(workItem);
+        handler.executeWorkItem(workItem, manager);
+        
+        Person result = (Person) workItem.getResult("Result");
+        assertNotNull("result cannot be null", result);
+        assertEquals("Person Xml", result.getName());
+        int responseCode = (Integer) workItem.getResult("Status");
+        assertNotNull(responseCode);
+        assertEquals(200, responseCode);
+        String responseMsg = (String) workItem.getResult("StatusMsg");
+        assertNotNull(responseMsg);
+        assertEquals("request to endpoint " + workItem.getParameter("Url") +" successfully completed OK", responseMsg);
+    }
+    
+    @Test
+    public void testGETOperationWithJsonTrasformation() {
+        RESTWorkItemHandler handler = new RESTWorkItemHandler();
+        
+        WorkItemImpl workItem = new WorkItemImpl();
+        workItem.setParameter( "Url", serverURL + "/json");
+        workItem.setParameter( "Method", "GET" );
+        workItem.setParameter( "ResultClass", Person.class.getName() );
+        
+        
+        WorkItemManager manager = new TestWorkItemManager(workItem);
+        handler.executeWorkItem(workItem, manager);
+        
+        Person result = (Person) workItem.getResult("Result");
+        assertNotNull("result cannot be null", result);
+        assertEquals("Person Json", result.getName());
+        int responseCode = (Integer) workItem.getResult("Status");
+        assertNotNull(responseCode);
+        assertEquals(200, responseCode);
+        String responseMsg = (String) workItem.getResult("StatusMsg");
+        assertNotNull(responseMsg);
+        assertEquals("request to endpoint " + workItem.getParameter("Url") +" successfully completed OK", responseMsg);
+    }
+    
+    @Test
+    public void testPOSTOperationWithXmlTransformation() {
+        RESTWorkItemHandler handler = new RESTWorkItemHandler();
+       
+        WorkItemImpl workItem = new WorkItemImpl();
+        workItem.setParameter( "Url", serverURL+"/xml");
+        workItem.setParameter( "Method", "POST" );
+        workItem.setParameter( "ContentType", "application/xml" );
+        workItem.setParameter( "Content", "<person><name>john</name><age>25</age></person>" );
+        workItem.setParameter( "ResultClass", Person.class.getName() );
+        
+        
+        WorkItemManager manager = new TestWorkItemManager(workItem);
+        handler.executeWorkItem(workItem, manager);
+        
+        Person result = (Person) workItem.getResult("Result");
+        assertNotNull("result cannot be null", result);
+        assertEquals("Post john", result.getName());
+        assertEquals(25, result.getAge().intValue());
+        int responseCode = (Integer) workItem.getResult("Status");
+        assertNotNull(responseCode);
+        assertEquals(200, responseCode);
+        String responseMsg = (String) workItem.getResult("StatusMsg");
+        assertNotNull(responseMsg);
+        assertEquals("request to endpoint " + workItem.getParameter("Url") +" successfully completed OK", responseMsg);
+    }
+    
+    @Test
+    public void testPUTOperationWithXmlTransformation() {
+        RESTWorkItemHandler handler = new RESTWorkItemHandler();
+ 
+        WorkItemImpl workItem = new WorkItemImpl();
+        workItem.setParameter( "Url", serverURL+"/xml");
+        workItem.setParameter( "Method", "PUT" );
+        workItem.setParameter( "ContentType", "application/xml" );
+        workItem.setParameter( "Content", "<person><name>john</name><age>25</age></person>" );
+        workItem.setParameter( "ResultClass", Person.class.getName() );
+        
+        WorkItemManager manager = new TestWorkItemManager(workItem);
+        handler.executeWorkItem(workItem, manager);
+        
+        Person result = (Person) workItem.getResult("Result");
+        assertNotNull("result cannot be null", result);
+        assertEquals("Put john", result.getName());
+        assertEquals(25, result.getAge().intValue());
+        int responseCode = (Integer) workItem.getResult("Status");
+        assertNotNull(responseCode);
+        assertEquals(200, responseCode);
+        String responseMsg = (String) workItem.getResult("StatusMsg");
+        assertNotNull(responseMsg);
+        assertEquals("request to endpoint " + workItem.getParameter("Url") +" successfully completed OK", responseMsg);
+    }
+    
+    @Test
+    public void testPOSTOperationWithCompleteXmlTransformation() {
+        RESTWorkItemHandler handler = new RESTWorkItemHandler();
+        
+        Person request = new Person();
+        request.setAge(25);
+        request.setName("john");
+       
+        WorkItemImpl workItem = new WorkItemImpl();
+        workItem.setParameter( "Url", serverURL+"/xml");
+        workItem.setParameter( "Method", "POST" );
+        workItem.setParameter( "ContentType", "application/xml" );
+        workItem.setParameter( "Content", request );
+        workItem.setParameter( "ResultClass", Person.class.getName() );
+        
+        
+        WorkItemManager manager = new TestWorkItemManager(workItem);
+        handler.executeWorkItem(workItem, manager);
+        
+        Person result = (Person) workItem.getResult("Result");
+        assertNotNull("result cannot be null", result);
+        assertEquals("Post john", result.getName());
+        assertEquals(25, result.getAge().intValue());
+        int responseCode = (Integer) workItem.getResult("Status");
+        assertNotNull(responseCode);
+        assertEquals(200, responseCode);
+        String responseMsg = (String) workItem.getResult("StatusMsg");
+        assertNotNull(responseMsg);
+        assertEquals("request to endpoint " + workItem.getParameter("Url") +" successfully completed OK", responseMsg);
     }
     
     private class TestWorkItemManager implements WorkItemManager {

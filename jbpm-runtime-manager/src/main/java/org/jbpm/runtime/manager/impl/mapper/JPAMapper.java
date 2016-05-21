@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.kie.api.runtime.EnvironmentName;
 import org.kie.api.runtime.manager.Context;
 import org.kie.internal.process.CorrelationKey;
 import org.kie.internal.process.CorrelationProperty;
-import org.kie.internal.runtime.manager.Mapper;
 import org.kie.internal.runtime.manager.context.CorrelationKeyContext;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 
@@ -43,7 +42,7 @@ import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
  *
  */
 @SuppressWarnings("rawtypes")
-public class JPAMapper implements Mapper {
+public class JPAMapper extends InternalMapper {
     
 	private EntityManagerFactory emf;
     
@@ -121,7 +120,7 @@ public class JPAMapper implements Mapper {
     public Context getProcessInstanceByCorrelationKey(CorrelationKey correlationKey, EntityManager em) {
         Query processInstancesForEvent = em.createNamedQuery( "GetProcessInstanceIdByCorrelation" );
         
-        processInstancesForEvent.setParameter( "elem_count", correlationKey.getProperties().size() );
+        processInstancesForEvent.setParameter( "elem_count", new Long(correlationKey.getProperties().size()) );
         List<Object> properties = new ArrayList<Object>();
         for (CorrelationProperty<?> property : correlationKey.getProperties()) {
             properties.add(property.getValue());
@@ -203,6 +202,14 @@ public class JPAMapper implements Mapper {
 	public List<Long> findKSessionToInit(String ownerId) {
         EntityManager em = emf.createEntityManager();
         Query findQuery = em.createNamedQuery("FindKSessionToInit").setParameter("ownerId", ownerId);
+        return findQuery.getResultList();
+    }
+    
+    @SuppressWarnings("unchecked")
+    public List<String> findContextIdForEvent(String eventType, String ownerId) {
+        EntityManager em = emf.createEntityManager();
+        Query findQuery = em.createNamedQuery("FindProcessInstanceWaitingForEvent")
+                .setParameter("eventType", eventType).setParameter("ownerId", ownerId);
         return findQuery.getResultList();
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ public class XMLPersistenceTest extends XMLTestCase {
         };
         process.setMetaData("routerLayout", 1);
         
-        List<String> imports = new ArrayList<String>();
+        Set<String> imports = new HashSet<String>();
         imports.add("import1");
         imports.add("import2");
         process.setImports(imports);

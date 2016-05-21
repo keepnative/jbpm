@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,12 +80,17 @@ public class KModuleRegisterableItemsFactory extends DefaultRegisterableItemsFac
         }
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("ksession", runtime.getKieSession());
-        parameters.put("taskService", runtime.getKieSession());
+        parameters.put("taskService", runtime.getTaskService());
         parameters.put("runtimeManager", ((RuntimeEngineImpl)runtime).getManager());
+        if (getRuntimeManager().getKieContainer() != null) {
+        	parameters.put("kieContainer", getRuntimeManager().getKieContainer());
+        }
+        parameters.put("classLoader", getRuntimeManager().getEnvironment().getClassLoader());
         try {
 
             CDIHelper.wireListnersAndWIHs(ksessionModel, runtime.getKieSession(), parameters);
         } catch (Exception e) {
+        	e.printStackTrace();
             // use fallback mechanism
             CDIHelper.wireListnersAndWIHs(ksessionModel, runtime.getKieSession());
         }

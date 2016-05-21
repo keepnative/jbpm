@@ -5,13 +5,27 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm-human-task</artifactId>
-    <version>6.2.0-SNAPSHOT</version>
+    <version>6.4.0.Final</version>
   </parent>
   <artifactId>jbpm-human-task-core</artifactId>
   <packaging>bundle</packaging>
 
   <name>jBPM :: Human Task Core</name>
 
+  <properties>
+    <!--  Oracle test properties
+    <maven.datasource.classname>oracle.jdbc.xa.client.OracleXADataSource</maven.datasource.classname>
+    <maven.hibernate.dialect>org.hibernate.dialect.Oracle10gDialect</maven.hibernate.dialect>
+    <maven.jdbc.driver.class>oracle.jdbc.OracleDriver</maven.jdbc.driver.class>
+    <maven.jdbc.username>jbpm</maven.jdbc.username>
+    <maven.jdbc.password>jbpm</maven.jdbc.password>
+    <maven.jdbc.url>jdbc:oracle:thin:@localhost:1521/jbpm</maven.jdbc.url>
+    <maven.jdbc.db.server>localhost</maven.jdbc.db.server>
+    <maven.jdbc.db.port>1521</maven.jdbc.db.port>
+    <maven.jdbc.schema>jbpm</maven.jdbc.schema>
+     -->
+  </properties>
+  
   <dependencies>
   <dependency>
     <groupId>com.google.protobuf</groupId>
@@ -25,6 +39,10 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-query-jpa</artifactId>
     </dependency>
 
     <dependency>
@@ -90,7 +108,7 @@
 	    <groupId>org.jbpm</groupId>
 	    <artifactId>jbpm-human-task-jpa</artifactId>
 	    <scope>test</scope>
-	  </dependency>
+    </dependency>
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-persistence-jpa</artifactId>
@@ -120,6 +138,12 @@
     <dependency>
       <groupId>org.codehaus.btm</groupId>
       <artifactId>btm</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-query-jpa</artifactId>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     
@@ -153,6 +177,18 @@
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-test-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- LDAP tests -->
+    <dependency>
+      <groupId>com.unboundid</groupId>
+      <artifactId>unboundid-ldapsdk</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -195,6 +231,9 @@
               !org.jbpm.services.task.rule,
               !org.jbpm.services.task.utils,
               org.jbpm.services.task.persistence;resolution:=optional,
+              org.drools.persistence;resolution:=optional,
+              org.drools.persistence.jpa;resolution:=optional,
+              org.drools.persistence.jta;resolution:=optional,
               *
             </Import-Package>
             <Private-Package></Private-Package>

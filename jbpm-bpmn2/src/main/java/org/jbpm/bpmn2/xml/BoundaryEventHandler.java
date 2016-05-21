@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.jbpm.bpmn2.core.Error;
 import org.jbpm.bpmn2.core.Escalation;
 import org.jbpm.bpmn2.core.ItemDefinition;
 import org.jbpm.bpmn2.core.Message;
+import org.jbpm.bpmn2.core.Signal;
 import org.jbpm.compiler.xml.ProcessBuildData;
 import org.jbpm.process.core.event.EventFilter;
 import org.jbpm.process.core.event.EventTransformerImpl;
@@ -101,6 +102,7 @@ public class BoundaryEventHandler extends AbstractNodeHandler {
         }
         NodeContainer nodeContainer = (NodeContainer) parser.getParent();
         nodeContainer.addNode(node);
+        ((ProcessBuildData) parser.getData()).addNode(node);
         return node;
     }
     
@@ -338,6 +340,18 @@ public class BoundaryEventHandler extends AbstractNodeHandler {
             } else if ("signalEventDefinition".equals(nodeName)) {
                 String type = ((Element) xmlNode).getAttribute("signalRef");
                 if (type != null && type.trim().length() > 0) {
+                    
+                    Map<String, Signal> signals = (Map<String, Signal>) ((ProcessBuildData) parser
+                            .getData()).getMetaData("Signals");
+                    
+                    if (signals != null && signals.containsKey(type)) {
+                        Signal signal = signals.get(type);                      
+                        type = signal.getName();
+                        if (type == null) {
+                            throw new IllegalArgumentException("Signal definition must have a name attribute");
+                        }
+                    }
+                    
                     List<EventFilter> eventFilters = new ArrayList<EventFilter>();
                     EventTypeFilter eventFilter = new EventTypeFilter();
                     eventFilter.setType(type);
@@ -498,6 +512,8 @@ public class BoundaryEventHandler extends AbstractNodeHandler {
                 writeExtensionElements(node, xmlDump);
                 String duration = (String) eventNode.getMetaData("TimeDuration");
                 String cycle = (String) eventNode.getMetaData("TimeCycle");
+                String date = (String) eventNode.getMetaData("TimeDate");
+                
                 
                 
                 if (duration != null && cycle != null) {
@@ -515,6 +531,11 @@ public class BoundaryEventHandler extends AbstractNodeHandler {
                     xmlDump.append(
                             "      <timerEventDefinition>" + EOL +
                             "        <timeDuration xsi:type=\"tFormalExpression\">" + XmlDumper.replaceIllegalChars(duration) + "</timeDuration>" + EOL +
+                            "      </timerEventDefinition>" + EOL);
+                } else if (date != null) {
+                    xmlDump.append(
+                            "      <timerEventDefinition>" + EOL +
+                            "        <timeDate xsi:type=\"tFormalExpression\">" + XmlDumper.replaceIllegalChars(date) + "</timeDate>" + EOL +
                             "      </timerEventDefinition>" + EOL);
                 } else {
                 	String lang = (String) eventNode.getMetaData("Language");

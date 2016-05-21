@@ -6,6 +6,7 @@
 
   <!-- process instance queries -->
   <named-query name="getProcessInstances">
+
     <query>
       select
       new org.jbpm.kie.services.impl.model.ProcessInstanceDesc(
@@ -17,7 +18,9 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
       )
       from
         ProcessInstanceLog log
@@ -39,8 +42,10 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
-      )
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId)
+
       from
         ProcessInstanceLog log
       where
@@ -61,8 +66,10 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
-      )
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+        )
       from
         ProcessInstanceLog log
       where
@@ -83,8 +90,10 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
-      )
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+        )
       from
         ProcessInstanceLog log
       where
@@ -106,8 +115,10 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
-      )
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+        )
       from
         ProcessInstanceLog log
       where
@@ -128,12 +139,64 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
-      )
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+        )
       from
         ProcessInstanceLog log
       where
         log.processInstanceId =:processId
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  <named-query name="getProcessInstanceByCorrelationKey">
+    <query>
+     select
+      new org.jbpm.kie.services.impl.model.ProcessInstanceDesc(
+      log.processInstanceId,
+      log.processId,
+      log.processName,
+      log.processVersion,
+      log.status,
+      log.externalId,
+      log.start,
+      log.identity,
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+        )
+      from
+        ProcessInstanceLog log
+      where
+        log.correlationKey =:correlationKey
+        and log.status = 1
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  <named-query name="getProcessInstancesByCorrelationKey">
+    <query>
+     select
+      new org.jbpm.kie.services.impl.model.ProcessInstanceDesc(
+      log.processInstanceId,
+      log.processId,
+      log.processName,
+      log.processVersion,
+      log.status,
+      log.externalId,
+      log.start,
+      log.identity,
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+        )
+      from
+        ProcessInstanceLog log
+      where
+        log.correlationKey like :correlationKey
+        order by log.id
     </query>
     <!-- hint name="org.hibernate.timeout" value="200"/ -->
   </named-query>
@@ -151,7 +214,9 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
       )
       from
         ProcessInstanceLog log
@@ -173,7 +238,9 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
       )
       from
         ProcessInstanceLog log
@@ -195,7 +262,9 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
       )
       from
         ProcessInstanceLog log
@@ -217,7 +286,9 @@
       log.externalId,
       log.start,
       log.identity,
-      log.processInstanceDescription
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
       )
       from
         ProcessInstanceLog log
@@ -226,6 +297,61 @@
     </query>
     <!-- hint name="org.hibernate.timeout" value="200"/ -->
   </named-query>
+  
+  <named-query name="getProcessInstancesByVariableName">
+
+    <query>
+      select
+      new org.jbpm.kie.services.impl.model.ProcessInstanceDesc(
+      log.processInstanceId,
+      log.processId,
+      log.processName,
+      log.processVersion,
+      log.status,
+      log.externalId,
+      log.start,
+      log.identity,
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+      )
+      from
+        ProcessInstanceLog log
+      where log.status in (:states) and log.processInstanceId in (select vlog.processInstanceId from
+        VariableInstanceLog vlog where vlog.variableId like :variable)
+      ORDER BY
+        log.processId, log.start
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  <named-query name="getProcessInstancesByVariableNameAndValue">
+
+    <query>
+      select
+      new org.jbpm.kie.services.impl.model.ProcessInstanceDesc(
+      log.processInstanceId,
+      log.processId,
+      log.processName,
+      log.processVersion,
+      log.status,
+      log.externalId,
+      log.start,
+      log.identity,
+      log.processInstanceDescription,
+      log.correlationKey,
+      log.parentProcessInstanceId
+      )
+      from
+        ProcessInstanceLog log
+      where log.status in (:states) and log.processInstanceId in 
+      (select vlog.processInstanceId from VariableInstanceLog vlog where vlog.variableId=:variable and vlog.value like :variableValue
+      and vlog.id in (select max(vlog2.id) from VariableInstanceLog vlog2 group by vlog2.processInstanceId))
+      ORDER BY
+        log.processId, log.start
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>  
   
   <!-- node instance queries -->
 
@@ -456,11 +582,9 @@
 	      a.dueDate
 	      )
         from 
-        	AuditTaskImpl a,
-        	TaskImpl t 
+        	AuditTaskImpl a
         where 
-        	a.taskId = t.id and
-        	t.taskData.workItemId = :workItemId 
+        	a.workItemId = :workItemId 
         	
     </query>
     <!-- hint name="org.hibernate.timeout" value="200"/ -->
@@ -493,4 +617,47 @@
     <!-- hint name="org.hibernate.timeout" value="200"/ -->
   </named-query>
 
+  <!-- deployment store named queries -->
+  <named-query name="getDeploymentUnit">
+
+    <query>
+      select d from DeploymentStoreEntry d where d.deploymentId=:deploymentId
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  <named-query name="getDeploymentUnitsByDate">
+
+    <query>
+      select d from DeploymentStoreEntry d where d.updateDate >= :ludate
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  
+  <named-query name="getDeploymentUnitsByState">
+
+    <query>
+      select d from DeploymentStoreEntry d where d.state in (:state)
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  
+  <!-- query definitions storage named queries -->
+  <named-query name="getQueryDefinitionByName">
+
+    <query>
+      select qd from QueryDefinitionEntity qd where name = :name
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
+  
+  <named-query name="getQueryDefinitions">
+
+    <query>
+      select qd from QueryDefinitionEntity qd
+    </query>
+    <!-- hint name="org.hibernate.timeout" value="200"/ -->
+  </named-query>
 </entity-mappings>

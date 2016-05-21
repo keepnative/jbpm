@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.services.ejb.timer;
 
 import java.io.Serializable;
@@ -18,7 +33,6 @@ import javax.ejb.TimerConfig;
 import org.drools.core.time.JobHandle;
 import org.drools.core.time.impl.TimerJobInstance;
 import org.jbpm.process.core.timer.TimerServiceRegistry;
-import org.jbpm.process.core.timer.impl.GlobalTimerService.GlobalJobHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,25 +93,6 @@ public class EJBTimerScheduler {
 		}
 	}
 	
-	public boolean isValid(GlobalJobHandle jobHandle) {
-		EjbGlobalJobHandle ejbHandle = (EjbGlobalJobHandle) jobHandle;
-		
-		for (Timer timer : timerService.getTimers()) {
-			Serializable info = timer.getInfo();
-			if (info instanceof EjbTimerJob) {
-				EjbTimerJob job = (EjbTimerJob) info;
-				
-				EjbGlobalJobHandle handle = (EjbGlobalJobHandle) job.getTimerJobInstance().getJobHandle();
-				if (handle.getUuid().equals(ejbHandle.getUuid())) {
-					logger.debug("Job handle {} does match timer", jobHandle);
-					return true;
-				}
-			}
-		}
-		logger.debug("Job handle {} is not valid on {} scheduler service", jobHandle, this);
-		return false;
-	}
-	
 	public boolean removeJob(JobHandle jobHandle) {
 		EjbGlobalJobHandle ejbHandle = (EjbGlobalJobHandle) jobHandle;
 		
@@ -109,7 +104,12 @@ public class EJBTimerScheduler {
 				EjbGlobalJobHandle handle = (EjbGlobalJobHandle) job.getTimerJobInstance().getJobHandle();
 				if (handle.getUuid().equals(ejbHandle.getUuid())) {
 					logger.debug("Job handle {} does match timer and is going to be canceled", jobHandle);
-					timer.cancel();
+					try {
+					    timer.cancel();
+					} catch (Throwable e) {
+					    logger.debug("Timer cancel error due to {}", e.getMessage());
+					    return false;
+					}
 					return true;
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.jbpm.services.task.wih;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.jbpm.services.task.exception.PermissionDeniedException;
 import org.jbpm.services.task.utils.OnErrorAction;
@@ -56,7 +57,8 @@ public class LocalHTWorkItemHandler extends AbstractHTWorkItemHandler {
         KieSession ksessionById = runtime.getKieSession();
         
         Task task = createTaskBasedOnWorkItemParams(ksessionById, workItem);
-        ContentData content = createTaskContentBasedOnWorkItemParams(ksessionById, workItem);
+//        ContentData content = createTaskContentBasedOnWorkItemParams(ksessionById, workItem);
+        Map<String, Object> content = createTaskDataBasedOnWorkItemParams(ksessionById, workItem);
         try {
             long taskId = ((InternalTaskService) runtime.getTaskService()).addTask(task, content);
             if (isAutoClaim(workItem, task)) {

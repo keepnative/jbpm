@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class EmailWorkItemHandler extends AbstractLogOrThrowWorkItemHandler {
 		}
 		try {
     		Email email = createEmail(workItem, connection);
-    		SendHtml.sendHtml(email);
+    		SendHtml.sendHtml(email, getDebugFlag(workItem));
     		// avoid null pointer when used from deadline escalation handler
     	    if (manager != null) {
     	 	  manager.completeWorkItem(workItem.getId(), null);    	 	
@@ -157,6 +157,15 @@ public class EmailWorkItemHandler extends AbstractLogOrThrowWorkItemHandler {
 	
 	public void abortWorkItem(WorkItem arg0, WorkItemManager arg1) {
 		// Do nothing, email cannot be aborted
+	}
+	
+	protected boolean getDebugFlag(WorkItem workItem) {
+	    Object debugParam  = workItem.getParameter("Debug");
+	    if (debugParam == null) {
+	        return false;
+	    }
+	    
+	    return Boolean.parseBoolean(debugParam.toString());
 	}
 
 }

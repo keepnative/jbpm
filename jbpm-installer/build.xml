@@ -43,6 +43,7 @@
       <include name="antlr-2.7.7.jar"/>
       <include name="hibernate-jpa-2.0-api*.jar"/>
       <include name="jta-1.1.jar"/>
+	  <include name="jboss-transaction-api*.jar"/>
       <include name="javassist-*.jar"/>
     </fileset>
   </path>
@@ -176,29 +177,29 @@
     <echo message="Checking Eclipse download ..." />
     <condition property="eclipse.not.available">
       <not>
-        <available file="${install.home}/lib/eclipse-java-kepler-SR2-${download.type}.${download.extension}" />
+        <available file="${install.home}/lib/eclipse-java-mars-2-${download.type}.${download.extension}" />
       </not>
     </condition>
   </target>
   <target name="download.eclipse" depends="download.eclipse.check" if="eclipse.not.available">
     <echo message="Getting Eclipse ..." />
     <mkdir dir="${install.home}/lib"/>
-    <get src="http://download.eclipse.org/technology/epp/downloads/release/kepler/SR2/eclipse-java-kepler-SR2-${download.type}.${download.extension}"
-         dest="${install.home}/lib/eclipse-java-kepler-SR2-${download.type}.${download.extension}"  />
+    <get src="http://download.eclipse.org/technology/epp/downloads/release/mars/2/eclipse-java-mars-2-${download.type}.${download.extension}"
+         dest="${install.home}/lib/eclipse-java-mars-2-${download.type}.${download.extension}"  />
   </target>
   <target name="download.eclipse.gef.check">
     <echo message="Checking Eclipse GEF download ..." />
     <condition property="eclipse.gef.not.available">
       <not>
-        <available file="${install.home}/lib/GEF-SDK-3.9.1.zip" />
+        <available file="${install.home}/lib/GEF-SDK-3.10.1.zip" />
       </not>
     </condition>
   </target>
   <target name="download.eclipse.gef" depends="download.eclipse.gef.check" if="eclipse.gef.not.available">
     <echo message="Getting Eclipse GEF ..." />
     <mkdir dir="${install.home}/lib"/>
-    <get src="http://download.eclipse.org/tools/gef/downloads/drops/3.9.1/R201308190730/GEF-SDK-3.9.1.zip"
-         dest="${install.home}/lib/GEF-SDK-3.9.1.zip" />
+    <get src="http://download.eclipse.org/tools/gef/downloads/drops/3.10.1/R201508170204/GEF-SDK-3.10.1.zip"
+         dest="${install.home}/lib/GEF-SDK-3.10.1.zip" />
   </target>
 
   <!-- Download jBPM binaries -->
@@ -262,25 +263,54 @@
     <mkdir dir="${install.home}/lib"/>
   	<get src="${jBPM.console.url}" dest="${install.home}/lib/jbpm-console-${jBPM.version}-${jboss.war.type}.war"  />
   </target>
-  <target name="check.jbpm.console.modules">
-    <condition property="jbpm.console.modules">
-	<equals arg1="${jBPM.console.modules}" arg2="true" />
+  <!-- temporary fix: updating hibernate version in wildfly to avoid bug in hibernate -->
+  <target name="check.wildfly">
+    <condition property="check.wildfly.property">
+      <equals arg1="${jboss.server.version}" arg2="wildfly-${jboss.server.wildfly.version}" />
     </condition>
   </target>
-  <target name="download.jBPM.console.modules.check" if="jbpm.console.modules" depends="check.jbpm.console.modules">
-    <echo message="Checking jBPM console modules download ..." />
-    <condition property="jBPM.console.modules.not.available">
+  <target name="download.hibernate.check">
+    <echo message="Checking Hibernate download ..." />
+    <condition property="hibernate.not.available">
+      <or>
+    	<not>
+          <available file="${install.home}/lib/hibernate4/hibernate-core-4.3.11.Final.jar" />
+        </not>
+    	<not>
+          <available file="${install.home}/lib/hibernate4/hibernate-entitymanager-4.3.11.Final.jar" />
+        </not>
+       	<not>
+          <available file="${install.home}/lib/hibernate4/hibernate-envers-4.3.11.Final.jar" />
+        </not>
+      	<not>
+          <available file="${install.home}/lib/hibernate4/hibernate-infinispan-4.3.11.Final.jar" />
+        </not>
+      </or>
+    </condition>
+  </target>
+  <target name="download.hibernate" depends="download.hibernate.check" if="hibernate.not.available">
+    <mkdir dir="${install.home}/lib/hibernate4"/>
+    <get src="${hibernate4.download.url}/hibernate-core/4.3.11.Final/hibernate-core-4.3.11.Final.jar" dest="${install.home}/lib/hibernate4" />
+    <get src="${hibernate4.download.url}/hibernate-entitymanager/4.3.11.Final/hibernate-entitymanager-4.3.11.Final.jar" dest="${install.home}/lib/hibernate4" />
+    <get src="${hibernate4.download.url}/hibernate-envers/4.3.11.Final/hibernate-envers-4.3.11.Final.jar" dest="${install.home}/lib/hibernate4" />
+    <get src="${hibernate4.download.url}/hibernate-infinispan/4.3.11.Final/hibernate-infinispan-4.3.11.Final.jar" dest="${install.home}/lib/hibernate4" />
+  </target>
+	
+  <!-- Download kie-server -->
+  <target name="download.kie.server.check">
+    <echo message="Checking KIE Server download ..." />
+    <condition property="kie.server.not.available">
       <and>
     	<not>
-          <available file="${install.home}/lib/jbpm-console-modules-${jBPM.version}.zip" />
+          <available file="${install.home}/lib/kie-server-${jBPM.version}-${jboss.war.type}.war" />
         </not>
       </and>
     </condition>
   </target>
-  <target name="download.jBPM.console.modules" depends="download.jBPM.console.modules.check" if="jBPM.console.modules.not.available">
-    <echo message="Getting jBPM console modules ..." />
+  <target name="download.kie.server" depends="download.kie.server.check" if="kie.server.not.available">
+    <echo message="Getting KIE Server ..." />
     <mkdir dir="${install.home}/lib"/>
-  	<get src="${jBPM.console.modules.url}" dest="${install.home}/lib/jbpm-console-modules-${jBPM.version}.zip"  />
+  	<get src="${kie.server.url}" dest="${install.home}/lib/kie-server-${jBPM.version}-${jboss.war.type}.war"  />
   </target>
 
   <!-- ############ INSTALL ############ -->
@@ -294,14 +324,8 @@
     <chmod perm="a+x" file="${jboss.home}/bin/jboss-cli.sh" />
   </target>
 	
-  <!-- Install jBPM console modules -->
-  <target name="install.jBPM-console-modules.into.jboss" depends="download.jBPM.console.modules" if="jbpm.console.modules">
-    <unzip src="${install.home}/lib/jbpm-console-modules-${jBPM.version}.zip"
-           dest="${jboss.home}"/>
-  </target>
-
   <!-- Install jBPM console -->
-  <target name="install.jBPM-console.into.jboss" depends="download.db.driver,download.jBPM.console">
+  <target name="install.jBPM-console.into.jboss" depends="download.db.driver,download.jBPM.console,install.configuration.into.jboss">
     <mkdir dir="${install.home}/target"/>
     <mkdir dir="${install.home}/target/jbpm-console-war"/>
     <unzip src="${install.home}/lib/jbpm-console-${jBPM.version}-${jboss.war.type}.war"
@@ -325,6 +349,8 @@
           tofile="${jboss.server.deploy.dir}/jbpm-console.war"
           overwrite="true" />
     <delete dir="${install.home}/target"/>
+  </target>
+  <target name="install.configuration.into.jboss">
     <copy file="${install.home}/standalone-${jboss.server.version}.xml"
           tofile="${jboss.home}/standalone/configuration/standalone.xml"
           overwrite="true" />
@@ -337,6 +363,22 @@
           overwrite="true" />
     <copy file="${install.home}/auth/roles.properties"
           tofile="${jboss.server.conf.dir}/roles.properties"
+          overwrite="true" />
+  </target>
+  <!-- temporary fix: updating hibernate version in wildfly to avoid bug in hibernate -->
+  <target name="install.hibernate4.into.jboss" depends="check.wildfly,download.hibernate" if="check.wildfly.property">
+    <copy file="${install.home}/lib/hibernate4/hibernate-core-4.3.11.Final.jar" todir="${jboss.home}/modules/system/layers/base/org/hibernate/main" />
+    <copy file="${install.home}/lib/hibernate4/hibernate-entitymanager-4.3.11.Final.jar" todir="${jboss.home}/modules/system/layers/base/org/hibernate/main" />
+    <copy file="${install.home}/lib/hibernate4/hibernate-envers-4.3.11.Final.jar" todir="${jboss.home}/modules/system/layers/base/org/hibernate/main" />
+    <copy file="${install.home}/lib/hibernate4/hibernate-infinispan-4.3.11.Final.jar" todir="${jboss.home}/modules/system/layers/base/org/hibernate/main" />
+    <copy file="${install.home}/wildfly-hibernate4-main-module.xml"
+          tofile="${jboss.home}/modules/system/layers/base/org/hibernate/main/module.xml"
+          overwrite="true" />
+  </target>
+  <!-- Install jBPM console -->
+  <target name="install.kie-server.into.jboss" depends="download.kie.server,install.configuration.into.jboss">
+    <copy file="${install.home}/lib/kie-server-${jBPM.version}-${jboss.war.type}.war"
+          tofile="${jboss.server.deploy.dir}/kie-server.war"
           overwrite="true" />
   </target>
 
@@ -370,17 +412,17 @@
     <antcall target="unzipEclipse" />	
     <antcall target="untarEclipse" />
     <unzip dest="${install.home}" overwrite="true" 
-           src="${install.home}/lib/GEF-SDK-3.9.1.zip" />				         
+           src="${install.home}/lib/GEF-SDK-3.10.1.zip" />				         
   </target>
   
   <target name="unzipEclipse" if="expandTypeZip">
     <unzip dest="${install.home}" overwrite="true" 
-           src="${install.home}/lib/eclipse-java-kepler-SR2-${download.type}.zip" />  
+           src="${install.home}/lib/eclipse-java-mars-2-${download.type}.zip" />  
   </target>
 
   <target name="untarEclipse" if="expandTypeTarGz">
-    <gunzip src="${install.home}/lib/eclipse-java-kepler-SR2-${download.type}.tar.gz"/>
-    <untar dest="${install.home}" src="${install.home}/lib/eclipse-java-kepler-SR2-${download.type}.tar" />
+    <gunzip src="${install.home}/lib/eclipse-java-mars-2-${download.type}.tar.gz"/>
+    <untar dest="${install.home}" src="${install.home}/lib/eclipse-java-mars-2-${download.type}.tar" />
     <chmod perm="a+x" file="${install.home}/eclipse/eclipse" os="Linux"/>
     <chmod perm="a+x" file="${install.home}/eclipse/Eclipse.app/Contents/MacOS/eclipse" os="Mac OS X"/>
   </target>
@@ -413,48 +455,48 @@
       <arg value="-application" />
       <arg value="org.eclipse.equinox.p2.director" />
       <arg value="-repository" />
-      <arg value="http://download.eclipse.org/bpmn2-modeler/updates/kepler/1.0.4,http://download.eclipse.org/releases/kepler,http://download.eclipse.org/modeling/mdt/bpmn2/updates/milestones/S20130423" />
+      <arg value="http://download.eclipse.org/bpmn2-modeler/updates/mars/1.2.3,http://download.eclipse.org/releases/mars,http://download.eclipse.org/modeling/mdt/bpmn2/updates/mars/1.2.1" />
       <arg value="-destination" />
       <arg value="${eclipse.home}" />
       <arg value="-installIU" />
-      <arg value="org.eclipse.bpmn2.modeler.feature.feature.group" />
+      <arg value="org.eclipse.bpmn2.modeler.feature.group" />
       <arg value="-installIU" />
-      <arg value="org.eclipse.bpmn2.modeler.jboss.runtime.feature.feature.group" />
+      <arg value="org.eclipse.bpmn2.modeler.runtime.jboss.feature.group" />
     </exec>
     <exec executable="${eclipse.home}/eclipse" os="Linux">
       <arg value="-nosplash" />
       <arg value="-application" />
       <arg value="org.eclipse.equinox.p2.director" />
       <arg value="-repository" />
-      <arg value="http://download.eclipse.org/bpmn2-modeler/updates/kepler/1.0.4,http://download.eclipse.org/releases/kepler,http://download.eclipse.org/modeling/mdt/bpmn2/updates/milestones/S20130423" />
+      <arg value="http://download.eclipse.org/bpmn2-modeler/updates/mars/1.2.3,http://download.eclipse.org/releases/mars,http://download.eclipse.org/modeling/mdt/bpmn2/updates/mars/1.2.1" />
       <arg value="-destination" />
       <arg value="${eclipse.home}" />
       <arg value="-installIU" />
-      <arg value="org.eclipse.bpmn2.modeler.feature.feature.group" />
+      <arg value="org.eclipse.bpmn2.modeler.feature.group" />
       <arg value="-installIU" />
-      <arg value="org.eclipse.bpmn2.modeler.jboss.runtime.feature.feature.group" />
+      <arg value="org.eclipse.bpmn2.modeler.runtime.jboss.feature.group" />
     </exec>
     <exec executable="${eclipse.home}/Eclipse.app/Contents/MacOS/eclipse" osfamily="mac">
       <arg value="-nosplash" />
       <arg value="-application" />
       <arg value="org.eclipse.equinox.p2.director" />
       <arg value="-repository" />
-      <arg value="http://download.eclipse.org/bpmn2-modeler/updates/kepler/1.0.4,http://download.eclipse.org/releases/kepler,http://download.eclipse.org/modeling/mdt/bpmn2/updates/milestones/S20130423" />
+      <arg value="http://download.eclipse.org/bpmn2-modeler/updates/mars/1.2.3,http://download.eclipse.org/releases/mars,http://download.eclipse.org/modeling/mdt/bpmn2/updates/mars/1.2.1" />
       <arg value="-installIU" />
-      <arg value="org.eclipse.bpmn2.modeler.feature.feature.group" />
+      <arg value="org.eclipse.bpmn2.modeler.feature.group" />
       <arg value="-installIU" />
-      <arg value="org.eclipse.bpmn2.modeler.jboss.runtime.feature.feature.group" />
+      <arg value="org.eclipse.bpmn2.modeler.runtime.jboss.feature.group" />
     </exec>
   </target>
 
   <!-- Install Demo -->
-  <target name="install.demo" depends="install.jboss,install.db.files,install.jBPM-console-modules.into.jboss,install.jBPM-console.into.jboss,install.eclipse,install.jBPM.runtime,install.droolsjbpm-eclipse.into.eclipse,install.modeler.into.eclipse" />
+  <target name="install.demo" depends="install.jboss,install.db.files,install.jBPM-console.into.jboss,install.hibernate4.into.jboss,install.kie-server.into.jboss,install.eclipse,install.jBPM.runtime,install.droolsjbpm-eclipse.into.eclipse,install.modeler.into.eclipse" />
 
   <!-- Install Demo (Eclipse) -->
   <target name="install.demo.eclipse" depends="install.eclipse,install.jBPM.runtime,install.droolsjbpm-eclipse.into.eclipse,install.modeler.into.eclipse" />
 
   <!-- Install Demo (No Eclipse) -->
-  <target name="install.demo.noeclipse" depends="install.jboss,install.db.files,install.jBPM-console-modules.into.jboss,install.jBPM-console.into.jboss" />
+  <target name="install.demo.noeclipse" depends="install.jboss,install.db.files,install.jBPM-console.into.jboss,install.hibernate4.into.jboss,install.kie-server.into.jboss" />
   
   <!-- ############ START/STOP ############ -->
   <target name="start.h2.check">
@@ -491,6 +533,7 @@
       <arg value="--server-config=standalone-full.xml" />
       <arg value="-Dorg.kie.demo=true" />
       <arg value="-Dorg.kie.example=false" />
+      <arg value="-Dorg.kie.server.persistence.ds=java:jboss/datasources/jbpmDS" />
       <!--arg value="-Dorg.uberfire.nio.git.daemon.port=${org.uberfire.nio.git.daemon.port}" />
       <arg value="-Dorg.uberfire.nio.git.ssh.port=${org.uberfire.nio.git.ssh.port}" />
       <arg value="-Djboss.socket.binding.port-offset=${jboss.port.offset}" />
@@ -505,6 +548,7 @@
       <arg value="--server-config=standalone-full.xml" />
       <arg value="-Dorg.kie.demo=true" />
       <arg value="-Dorg.kie.example=false" />
+      <arg value="-Dorg.kie.server.persistence.ds=java:jboss/datasources/jbpmDS" />
       <!--arg value="-Dorg.uberfire.nio.git.daemon.port=${org.uberfire.nio.git.daemon.port}" />
       <arg value="-Dorg.uberfire.nio.git.ssh.port=${org.uberfire.nio.git.ssh.port}" />
       <arg value="-Djboss.socket.binding.port-offset=${jboss.port.offset}" />
@@ -673,7 +717,7 @@
 	  <hibernatetool destdir="db/export-jbpm">
 	    <jpaconfiguration persistenceunit="org.jbpm.persistence.jpa.ddl" />
 	    <classpath>
-    	    <pathelement path="${runtime.class.path}"/>
+    	    <pathelement path="${generate.ddl.JPA2.class.path}"/>
 	    	<dirset dir="db/export-jbpm/">
 	        </dirset>
 	    </classpath>

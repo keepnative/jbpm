@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,7 +204,7 @@ public class CompensationTest extends JbpmBpmn2TestCase {
 
         // compensation activity (assoc. with script task) signaled *after* script task
         assertProcessInstanceCompleted(processInstance.getId(), ksession);
-        assertProcessVarValue(processInstance, "x", "1");
+        assertProcessVarValue(processInstance, "x", "2");
     }
     
     @Test

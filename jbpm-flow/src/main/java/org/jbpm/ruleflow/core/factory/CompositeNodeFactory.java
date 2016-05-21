@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,11 @@ public class CompositeNodeFactory extends RuleFlowNodeContainerFactory {
     
     protected CompositeContextNode getCompositeNode() {
     	return (CompositeContextNode) getNodeContainer();
+    }
+
+    public CompositeNodeFactory name(String name) {
+        getCompositeNode().setName(name);
+        return this;
     }
 
     public CompositeNodeFactory variable(String name, DataType type) {

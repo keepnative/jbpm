@@ -1,12 +1,27 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.services.task.events;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.drools.core.event.AbstractEventSupport;
 import org.kie.api.task.TaskLifeCycleEventListener;
 import org.kie.api.task.model.Task;
 import org.kie.internal.task.api.TaskContext;
-import org.kie.internal.task.api.TaskPersistenceContext;
 
 public class TaskEventSupport extends AbstractEventSupport<TaskLifeCycleEventListener> {
 
@@ -157,6 +172,31 @@ public class TaskEventSupport extends AbstractEventSupport<TaskLifeCycleEventLis
         }
     }
     
+    public void fireBeforeTaskReassigned(final Task task, TaskContext context) {
+        final Iterator<TaskLifeCycleEventListener> iter = getEventListenersIterator();
+        if (iter.hasNext()) {
+            do{
+                TaskLifeCycleEventListener listener = iter.next();
+                if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
+                    ((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).beforeTaskReassignedEvent(new TaskEventImpl(task, context));
+                }
+            } while (iter.hasNext());
+        }
+    }
+    
+    public void fireBeforeTaskNotified(final Task task, TaskContext context) {
+        final Iterator<TaskLifeCycleEventListener> iter = getEventListenersIterator();
+        if (iter.hasNext()) {
+            do{
+                TaskLifeCycleEventListener listener = iter.next();
+                if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
+                    ((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).beforeTaskNominatedEvent(new TaskEventImpl(task, context));
+                }
+            } while (iter.hasNext());
+        }
+    }
+
+    
     // after methods
     
     public void fireAfterTaskActivated(final Task task, TaskContext context) {
@@ -302,6 +342,55 @@ public class TaskEventSupport extends AbstractEventSupport<TaskLifeCycleEventLis
             	if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
             		((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).afterTaskUpdatedEvent(new TaskEventImpl(task, context));
             	}
+            } while (iter.hasNext());
+        }
+    }
+    
+    public void fireAfterTaskReassigned(final Task task, TaskContext context) {
+        final Iterator<TaskLifeCycleEventListener> iter = getEventListenersIterator();
+        if (iter.hasNext()) {
+            do{
+                TaskLifeCycleEventListener listener = iter.next();
+                if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
+                    ((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).afterTaskReassignedEvent(new TaskEventImpl(task, context));
+                }
+            } while (iter.hasNext());
+        }
+    }
+    
+    public void fireAfterTaskNotified(final Task task, TaskContext context) {
+        final Iterator<TaskLifeCycleEventListener> iter = getEventListenersIterator();
+        if (iter.hasNext()) {
+            do{
+                TaskLifeCycleEventListener listener = iter.next();
+                if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
+                    ((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).afterTaskNotificationEvent(new TaskEventImpl(task, context));
+                }
+            } while (iter.hasNext());
+        }
+    }
+    
+    public void fireAfterTaskInputVariablesChanged(final Task task, TaskContext context, Map<String, Object> variables) {
+        final Iterator<TaskLifeCycleEventListener> iter = getEventListenersIterator();
+        if (iter.hasNext()) {
+            do{
+                TaskLifeCycleEventListener listener = iter.next();
+                if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
+                    ((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).afterTaskInputVariableChangedEvent(new TaskEventImpl(task, context), variables);
+                }
+            } while (iter.hasNext());
+        }
+    }
+    
+    
+    public void fireAfterTaskOutputVariablesChanged(final Task task, TaskContext context, Map<String, Object> variables) {
+        final Iterator<TaskLifeCycleEventListener> iter = getEventListenersIterator();
+        if (iter.hasNext()) {
+            do{
+                TaskLifeCycleEventListener listener = iter.next();
+                if (listener instanceof org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener) {
+                    ((org.jbpm.services.task.lifecycle.listeners.TaskLifeCycleEventListener)listener).afterTaskOutputVariableChangedEvent(new TaskEventImpl(task, context), variables);
+                }
             } while (iter.hasNext());
         }
     }

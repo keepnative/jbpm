@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.jbpm.test;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import org.drools.core.audit.WorkingMemoryInMemoryLogger;
 import org.drools.core.audit.event.LogEvent;
 import org.drools.core.audit.event.RuleFlowNodeLogEvent;
 import org.drools.persistence.jta.JtaTransactionManager;
+import org.jbpm.process.audit.JPAAuditLogService;
 import org.jbpm.process.instance.event.DefaultSignalManagerFactory;
 import org.jbpm.process.instance.impl.DefaultProcessInstanceManagerFactory;
 import org.jbpm.runtime.manager.impl.DefaultRegisterableItemsFactory;
@@ -77,6 +79,10 @@ import org.kie.internal.runtime.manager.context.EmptyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import bitronix.tm.TransactionManagerServices;
+import bitronix.tm.internal.BitronixSystemException;
+import bitronix.tm.resource.ResourceRegistrar;
+import bitronix.tm.resource.common.XAResourceProducer;
 import bitronix.tm.resource.jdbc.PoolingDataSource;
 
 /**
@@ -146,6 +152,8 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
     protected List<TaskLifeCycleEventListener> customTaskListeners = new ArrayList<TaskLifeCycleEventListener>();
     protected Map<String, Object> customEnvironmentEntries = new HashMap<String, Object>();
 
+    private final Map<String, Object> persistenceProperties = new HashMap<String, Object>();
+
     /**
      * The most simple test case configuration:
      * <ul>
@@ -192,7 +200,7 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
         if (!this.setupDataSource && this.sessionPersistence) {
             throw new IllegalArgumentException("Unsupported configuration, cannot enable sessionPersistence when setupDataSource is disabled");
         }
-        logger.info("Configuring entire test case to have data source enabled {} and session persistence enabled {} with persistence unit name {}",
+        logger.debug("Configuring entire test case to have data source enabled {} and session persistence enabled {} with persistence unit name {}",
                 this.setupDataSource, this.sessionPersistence, this.persistenceUnitName);
     }
 
@@ -203,7 +211,7 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
         if (setupDataSource) {
             ds = setupPoolingDataSource();
             logger.debug("Data source configured with unique id {}", ds.getUniqueName());
-            emf = Persistence.createEntityManagerFactory(persistenceUnitName);
+            emf = Persistence.createEntityManagerFactory(persistenceUnitName, persistenceProperties);
         }
         cleanupSingletonSessionId();
 
@@ -211,29 +219,32 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
 
     @After
     public void tearDown() throws Exception {
-    	clearCustomRegistry();
-        disposeRuntimeManager();
-        clearHistory();
-        if (setupDataSource) {
-            if (emf != null) {
-                emf.close();
-                emf = null;
-               	EntityManagerFactoryManager.get().clear();
-
-            }
-            if (ds != null) {
-                ds.close();
-                ds = null;
-            }
-            try {
-                InitialContext context = new InitialContext();
-                UserTransaction ut = (UserTransaction) context.lookup( JtaTransactionManager.DEFAULT_USER_TRANSACTION_NAME );
-                if( ut.getStatus() != Status.STATUS_NO_TRANSACTION ) {
-                    ut.setRollbackOnly();
-                    ut.rollback();
+        try {
+            clearCustomRegistry();
+            disposeRuntimeManager();
+            clearHistory();
+        } finally {
+            if (setupDataSource) {
+                try {
+                    InitialContext context = new InitialContext();
+                    UserTransaction ut = (UserTransaction) context.lookup( JtaTransactionManager.DEFAULT_USER_TRANSACTION_NAME );
+                    if( ut.getStatus() != Status.STATUS_NO_TRANSACTION ) {
+                        ut.setRollbackOnly();
+                        ut.rollback();
+                    }
+                } catch( Exception e ) {
+                    // do nothing
                 }
-            } catch( Exception e ) {
-                // do nothing
+                if (emf != null) {
+                    emf.close();
+                    emf = null;
+                    EntityManagerFactoryManager.get().clear();
+                }
+                if (ds != null) {
+                    ds.close();
+                    ds = null;
+                }
+                persistenceProperties.clear();
             }
         }
     }
@@ -326,7 +337,7 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
             builder = RuntimeEnvironmentBuilder.Factory.get()
         			.newEmptyBuilder()
             .addConfiguration("drools.processSignalManagerFactory", DefaultSignalManagerFactory.class.getName())
-            .addConfiguration("drools.processInstanceManagerFactory", DefaultProcessInstanceManagerFactory.class.getName())
+            .addConfiguration("drools.processInstanceManagerFactory", DefaultProcessInstanceManagerFactory.class.getName())            
             .registerableItemsFactory(new SimpleRegisterableItemsFactory() {
 
 				@Override
@@ -399,6 +410,7 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
         } else {
             builder = RuntimeEnvironmentBuilder.Factory.get()
         			.newDefaultInMemoryBuilder()
+        			.entityManagerFactory(emf)
         			.registerableItemsFactory(new DefaultRegisterableItemsFactory() {
 
 				@Override
@@ -460,39 +472,45 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
         if (manager != null) {
             throw new IllegalStateException("There is already one RuntimeManager active");
         }
-
-        switch (strategy) {
-        case SINGLETON:
-            if (identifier == null) {
-                manager = managerFactory.newSingletonRuntimeManager(environment);
-            } else {
-                manager = managerFactory.newSingletonRuntimeManager(environment, identifier);
+        try {
+            switch (strategy) {
+            case SINGLETON:
+                if (identifier == null) {
+                    manager = managerFactory.newSingletonRuntimeManager(environment);
+                } else {
+                    manager = managerFactory.newSingletonRuntimeManager(environment, identifier);
+                }
+                break;
+            case REQUEST:
+                if (identifier == null) {
+                    manager = managerFactory.newPerRequestRuntimeManager(environment);
+                } else {
+                    manager = managerFactory.newPerRequestRuntimeManager(environment, identifier);
+                }
+                break;
+            case PROCESS_INSTANCE:
+                if (identifier == null) {
+                    manager = managerFactory.newPerProcessInstanceRuntimeManager(environment);
+                } else {
+                    manager = managerFactory.newPerProcessInstanceRuntimeManager(environment, identifier);
+                }
+                break;
+            default:
+                if (identifier == null) {
+                    manager = managerFactory.newSingletonRuntimeManager(environment);
+                } else {
+                    manager = managerFactory.newSingletonRuntimeManager(environment, identifier);
+                }
+                break;
             }
-            break;
-        case REQUEST:
-            if (identifier == null) {
-                manager = managerFactory.newPerRequestRuntimeManager(environment);
-            } else {
-                manager = managerFactory.newPerRequestRuntimeManager(environment, identifier);
+    
+            return manager;
+        } catch (Exception e) {
+            if (e instanceof BitronixSystemException || e instanceof ClosedChannelException) {
+                TransactionManagerServices.getTransactionManager().shutdown();
             }
-            break;
-        case PROCESS_INSTANCE:
-            if (identifier == null) {
-                manager = managerFactory.newPerProcessInstanceRuntimeManager(environment);
-            } else {
-                manager = managerFactory.newPerProcessInstanceRuntimeManager(environment, identifier);
-            }
-            break;
-        default:
-            if (identifier == null) {
-                manager = managerFactory.newSingletonRuntimeManager(environment);
-            } else {
-                manager = managerFactory.newSingletonRuntimeManager(environment, identifier);
-            }
-            break;
+            throw new RuntimeException(e);
         }
-
-        return manager;
     }
 
     /**
@@ -661,7 +679,24 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
         }
         ProcessInstance processInstance = ksession.getProcessInstance(processInstanceId);
         if (processInstance instanceof WorkflowProcessInstance) {
-            assertNodeActive((WorkflowProcessInstance) processInstance, names);
+            if (sessionPersistence) {
+                List<? extends NodeInstanceLog> logs = logService.findNodeInstances(processInstanceId); // ENTER -> EXIT is correctly ordered
+                if (logs != null) {
+                    List<String> activeNodes = new ArrayList<String>();
+                    for (NodeInstanceLog l : logs) {
+                        String nodeName = l.getNodeName();
+                        if (l.getType() == NodeInstanceLog.TYPE_ENTER && names.contains(nodeName)) {
+                            activeNodes.add(nodeName);
+                        }
+                        if (l.getType() == NodeInstanceLog.TYPE_EXIT && names.contains(nodeName)) {
+                            activeNodes.remove(nodeName);
+                        }
+                    }
+                    names.removeAll(activeNodes);
+                }
+            } else {
+                assertNodeActive((WorkflowProcessInstance) processInstance, names);
+            }
         }
         if (!names.isEmpty()) {
             String s = names.get(0);
@@ -836,17 +871,43 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
         pds.getDriverProperties().put("password", "");
         pds.getDriverProperties().put("url", "jdbc:h2:mem:jbpm-db;MVCC=true");
         pds.getDriverProperties().put("driverClassName", "org.h2.Driver");
-        pds.init();
+        try {
+            pds.init();
+        } catch (Exception e) {
+            logger.warn("DBPOOL_MGR:Looks like there is an issue with creating db pool because of " + e.getMessage() + " cleaing up...");
+            Set<String> resources = ResourceRegistrar.getResourcesUniqueNames();
+            for (String resource : resources) {
+                XAResourceProducer producer = ResourceRegistrar.get(resource);
+                producer.close();
+                ResourceRegistrar.unregister(producer);
+                logger.debug("DBPOOL_MGR:Removed resource " + resource);
+            }
+            logger.debug("DBPOOL_MGR: attempting to create db pool again...");
+            pds = new PoolingDataSource();
+            pds.setUniqueName("jdbc/jbpm-ds");
+            pds.setClassName("bitronix.tm.resource.jdbc.lrc.LrcXADataSource");
+            pds.setMaxPoolSize(5);
+            pds.setAllowLocalTransactions(true);
+            pds.getDriverProperties().put("user", "sa");
+            pds.getDriverProperties().put("password", "");
+            pds.getDriverProperties().put("url", "jdbc:h2:mem:jbpm-db;MVCC=true");
+            pds.getDriverProperties().put("driverClassName", "org.h2.Driver");
+            pds.init();         
+            logger.debug("DBPOOL_MGR:Pool created after cleanup of leftover resources");
+        }
         return pds;
     }
 
     protected void clearHistory() {
         if (sessionPersistence && logService != null) {
-        	RuntimeManager manager = createRuntimeManager();
-        	RuntimeEngine engine = manager.getRuntimeEngine(null);
-        	engine.getAuditService().clear();
-        	manager.disposeRuntimeEngine(engine);
-        	manager.close();
+//        	RuntimeManager manager = createRuntimeManager();
+//        	RuntimeEngine engine = manager.getRuntimeEngine(null);
+//        	engine.getAuditService().clear();
+//        	manager.disposeRuntimeEngine(engine);
+//        	manager.close();
+            JPAAuditLogService service = new JPAAuditLogService(emf);
+            service.clear();
+            service.dispose();
         } else if (inMemoryLogger != null) {
             inMemoryLogger.clear();
         }
@@ -892,7 +953,14 @@ public abstract class JbpmJUnitBaseTestCase extends Assert {
     	customEnvironmentEntries.put(name, value);
     }
 
+    public void setPersistenceProperty(String name, Object value) {
+        persistenceProperties.put(name, value);
+    }
+
     protected static class TestWorkItemHandler implements WorkItemHandler {
+
+        public TestWorkItemHandler() {
+        }
 
         private List<WorkItem> workItems = new ArrayList<WorkItem>();
 

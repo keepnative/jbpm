@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.services.task.persistence;
 
 import java.lang.reflect.Constructor;
@@ -8,8 +23,8 @@ import org.drools.core.command.Interceptor;
 import org.drools.core.command.impl.AbstractInterceptor;
 import org.drools.persistence.OrderedTransactionSynchronization;
 import org.drools.persistence.TransactionManager;
+import org.drools.persistence.TransactionManagerFactory;
 import org.drools.persistence.TransactionManagerHelper;
-import org.drools.persistence.jta.JtaTransactionManager;
 import org.kie.api.command.Command;
 import org.kie.api.runtime.Environment;
 import org.kie.api.runtime.EnvironmentName;
@@ -165,9 +180,7 @@ public class TaskTransactionInterceptor extends AbstractInterceptor {
                 }
             } else {
                 logger.debug( "Instantiating JtaTransactionManager" );
-                this.txm = new JtaTransactionManager( env.get( EnvironmentName.TRANSACTION ),
-                                                      env.get( EnvironmentName.TRANSACTION_SYNCHRONIZATION_REGISTRY ),
-                                                      tm );
+                this.txm = TransactionManagerFactory.get().newTransactionManager(env);
                 env.set( EnvironmentName.TRANSACTION_MANAGER, this.txm );
                 try {
                      this.tpm = new JPATaskPersistenceContextManager( env );

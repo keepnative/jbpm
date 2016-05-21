@@ -1,5 +1,5 @@
     /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.drools.core.common.InternalWorkingMemory;
 import org.drools.core.time.Job;
 import org.drools.core.time.JobContext;
 import org.drools.core.time.JobHandle;
@@ -38,13 +39,13 @@ import org.jbpm.process.core.timer.impl.GlobalTimerService;
 import org.jbpm.services.task.commands.ExecuteDeadlinesCommand;
 import org.jbpm.services.task.commands.InitDeadlinesCommand;
 import org.jbpm.services.task.deadlines.NotificationListener;
-import org.jbpm.services.task.query.DeadlineSummaryImpl;
 import org.jbpm.services.task.utils.ClassUtil;
 import org.kie.api.runtime.CommandExecutor;
 import org.kie.api.task.model.Task;
 import org.kie.internal.task.api.TaskDeadlinesService;
 import org.kie.internal.task.api.TaskPersistenceContext;
 import org.kie.internal.task.api.model.Deadline;
+import org.kie.internal.task.api.model.DeadlineSummary;
 import org.kie.internal.task.api.model.Deadlines;
 import org.kie.internal.task.api.model.InternalTask;
 import org.slf4j.Logger;
@@ -133,10 +134,10 @@ public class TaskDeadlinesServiceImpl implements TaskDeadlinesService {
  
             if (type == DeadlineType.START) {
                 List<Deadline> startDeadlines = deadlines.getStartDeadlines();
-                List<DeadlineSummaryImpl> resultList = (List<DeadlineSummaryImpl>)persistenceContext.queryWithParametersInTransaction("UnescalatedStartDeadlinesByTaskId",
+                List<DeadlineSummary> resultList = (List<DeadlineSummary>)persistenceContext.queryWithParametersInTransaction("UnescalatedStartDeadlinesByTaskId",
                 		persistenceContext.addParametersToMap("taskId", taskId),
-						ClassUtil.<List<DeadlineSummaryImpl>>castClass(List.class));
-                for (DeadlineSummaryImpl summary : resultList) {
+						ClassUtil.<List<DeadlineSummary>>castClass(List.class));
+                for (DeadlineSummary summary : resultList) {
                     TaskDeadlineJob deadlineJob = new TaskDeadlineJob(summary.getTaskId(), summary.getDeadlineId(), DeadlineType.START);
                     logger.debug("unscheduling timer job for deadline {} {} and task {}  using timer service {}", deadlineJob.getId(), summary.getDeadlineId(), taskId, timerService);
                     JobHandle jobHandle = jobHandles.remove(deadlineJob.getId()); 
@@ -153,10 +154,10 @@ public class TaskDeadlinesServiceImpl implements TaskDeadlinesService {
                 }
             } else if (type == DeadlineType.END) {
                 List<Deadline> endDeadlines = deadlines.getStartDeadlines();
-                List<DeadlineSummaryImpl> resultList = (List<DeadlineSummaryImpl>)persistenceContext.queryWithParametersInTransaction("UnescalatedEndDeadlinesByTaskId",
+                List<DeadlineSummary> resultList = (List<DeadlineSummary>)persistenceContext.queryWithParametersInTransaction("UnescalatedEndDeadlinesByTaskId",
                 		persistenceContext.addParametersToMap("taskId", taskId),
-						ClassUtil.<List<DeadlineSummaryImpl>>castClass(List.class));
-                for (DeadlineSummaryImpl summary : resultList) {
+						ClassUtil.<List<DeadlineSummary>>castClass(List.class));
+                for (DeadlineSummary summary : resultList) {
                     
                     TaskDeadlineJob deadlineJob = new TaskDeadlineJob(summary.getTaskId(), summary.getDeadlineId(), DeadlineType.END);
                     logger.debug("unscheduling timer job for deadline {} and task {}  using timer service {}", deadlineJob.getId(), taskId, timerService);
@@ -230,7 +231,7 @@ public class TaskDeadlinesServiceImpl implements TaskDeadlinesService {
         public ScheduledTaskDeadline call() throws Exception {
         	CommandExecutor executor = TaskDeadlinesServiceImpl.getInstance();
             if (executor != null) {
-                executor.execute(new ExecuteDeadlinesCommand(taskId, deadlineId, type, notificationListener));
+                executor.execute(new ExecuteDeadlinesCommand(taskId, deadlineId, type));
             } else {
                 logger.error("TaskDeadlineService instance is not available, most likely was not properly initialized - Job did not run!");
             }
@@ -306,7 +307,7 @@ public class TaskDeadlinesServiceImpl implements TaskDeadlinesService {
             
             CommandExecutor executor = TaskDeadlinesServiceImpl.getInstance();
             if (executor != null) {
-                executor.execute(new ExecuteDeadlinesCommand(taskId, deadlineId, type, notificationListener));
+                executor.execute(new ExecuteDeadlinesCommand(taskId, deadlineId, type));
             } else {
                 logger.error("TaskDeadlineService instance is not available, most likely was not properly initialized - Job did not run!");
             }            
@@ -349,13 +350,12 @@ public class TaskDeadlinesServiceImpl implements TaskDeadlinesService {
 		public Long getProcessInstanceId() {
 			return processInstanceId;
 		}
-        
+
+        @Override
+        public InternalWorkingMemory getWorkingMemory() {
+            return null;
+        }
     }
-
-
-    public static void setNotificationListener(NotificationListener notificationListener) {
-		TaskDeadlinesServiceImpl.notificationListener = notificationListener;
-	}
 
     public static CommandExecutor getInstance() {
         return instance;

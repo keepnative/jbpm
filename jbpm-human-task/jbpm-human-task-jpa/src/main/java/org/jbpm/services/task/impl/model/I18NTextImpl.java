@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class I18NTextImpl extends AbstractBaseEntityWithDomainNoAuditing impleme
             }
     )
     @Column(name = "ID")
-    private Long   id = 0L;
+    private Long   id = null;
 
     @Column(name = "LANGUAGE")
     private String language;
@@ -103,7 +103,7 @@ public class I18NTextImpl extends AbstractBaseEntityWithDomainNoAuditing impleme
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

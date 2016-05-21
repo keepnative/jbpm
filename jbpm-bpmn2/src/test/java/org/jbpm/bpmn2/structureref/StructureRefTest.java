@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss Inc
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,5 +271,33 @@ public class StructureRefTest extends JbpmBpmn2TestCase {
         // enable it back for other tests
         VariableScope.setVariableStrictOption(true);
  
+    }
+    
+    @Test
+    public void testNotExistingBooleanStructureRefOnWIComplete() throws Exception {
+        KieBase kbase = createKnowledgeBaseWithoutDumper("BPMN2-IntegerStructureRef.bpmn2");
+        KieSession ksession = createKnowledgeSession(kbase);
+        TestWorkItemHandler workItemHandler = new TestWorkItemHandler();
+        ksession.getWorkItemManager().registerWorkItemHandler("Human Task",
+                workItemHandler);
+        
+        ProcessInstance processInstance = ksession.startProcess("StructureRef");
+        assertTrue(processInstance.getState() == ProcessInstance.STATE_ACTIVE);
+
+        String wrongDataOutput = "not existing";
+        
+        Map<String, Object> res = new HashMap<String, Object>();
+        res.put(wrongDataOutput, true);
+
+        try {
+            ksession.getWorkItemManager().completeWorkItem(workItemHandler.getWorkItem().getId(), res);
+            fail();
+        }  catch (IllegalArgumentException iae) {
+            System.out.println("Expected IllegalArgumentException catched: " + iae);
+            assertEquals("Data output '"+ wrongDataOutput +"' is not defined in process 'StructureRef' for task 'User Task'", iae.getMessage());
+        } catch (Exception e) {
+            fail();
+        }
+
     }
 }

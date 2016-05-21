@@ -1,5 +1,5 @@
 /**
- * Copyright 2005 JBoss Inc
+ * Copyright 2005 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jbpm.process.instance.ProcessInstance;
+import org.jbpm.workflow.core.node.AsyncEventNode;
 import org.jbpm.workflow.core.node.CompositeNode;
 import org.jbpm.workflow.core.node.EventNode;
 import org.jbpm.workflow.core.node.EventNodeInterface;
@@ -37,6 +39,7 @@ import org.jbpm.workflow.instance.WorkflowProcessInstance;
 import org.jbpm.workflow.instance.impl.NodeInstanceFactory;
 import org.jbpm.workflow.instance.impl.NodeInstanceFactoryRegistry;
 import org.jbpm.workflow.instance.impl.NodeInstanceImpl;
+import org.jbpm.workflow.instance.impl.WorkflowProcessInstanceImpl;
 import org.kie.api.definition.process.Connection;
 import org.kie.api.definition.process.Node;
 import org.kie.api.definition.process.NodeContainer;
@@ -51,8 +54,13 @@ public class CompositeNodeInstance extends StateBasedNodeInstance implements Nod
 
     private static final long serialVersionUID = 510l;
     
-    private final List<NodeInstance> nodeInstances = new ArrayList<NodeInstance>();;
+    private final List<NodeInstance> nodeInstances = new ArrayList<NodeInstance>();
+   
+    @Deprecated // this should be deleted in 7.0.x
     private long nodeInstanceCounter = 0;
+    @Deprecated // this should be deleted in 7.0.x
+    private boolean deprecatedIdStrategy = false;
+    private AtomicLong singleNodeInstanceCounter = null; // set during NodeInstance creation (*NodeFactory)
     private int state = ProcessInstance.STATE_ACTIVE;
     private Map<String, Integer> iterationLevels = new HashMap<String, Integer>();
     private int currentLevel;
@@ -77,6 +85,8 @@ public class CompositeNodeInstance extends StateBasedNodeInstance implements Nod
    
     public void setProcessInstance(WorkflowProcessInstance processInstance) {
     	super.setProcessInstance(processInstance);
+    	this.singleNodeInstanceCounter = ((WorkflowProcessInstanceImpl) processInstance).internalGetNodeInstanceCounter();
+    	this.deprecatedIdStrategy = ((WorkflowProcessInstanceImpl) processInstance).getDeprecatedIdStrategy();
     	registerExternalEventNodeListeners();
     }
     
@@ -176,7 +186,13 @@ public class CompositeNodeInstance extends StateBasedNodeInstance implements Nod
     }
     
     public void addNodeInstance(final NodeInstance nodeInstance) {
-        ((NodeInstanceImpl) nodeInstance).setId(nodeInstanceCounter++);
+        long id;
+        if( deprecatedIdStrategy ) { 
+            id = nodeInstanceCounter++;  
+        } else { 
+            id = singleNodeInstanceCounter.incrementAndGet();
+        }
+        ((NodeInstanceImpl) nodeInstance).setId(id);
         this.nodeInstances.add(nodeInstance);
     }
 
@@ -211,6 +227,15 @@ public class CompositeNodeInstance extends StateBasedNodeInstance implements Nod
 		}
 		return null;
 	}
+	
+	public NodeInstance getNodeInstance(long nodeInstanceId, boolean recursive) {
+		for (NodeInstance nodeInstance: getNodeInstances(recursive)) {
+			if (nodeInstance.getId() == nodeInstanceId) {
+				return nodeInstance;
+			}
+		}
+		return null;
+	}
 
     public NodeInstance getFirstNodeInstance(final long nodeId) {
         for ( final Iterator<NodeInstance> iterator = this.nodeInstances.iterator(); iterator.hasNext(); ) {
@@ -237,12 +262,19 @@ public class CompositeNodeInstance extends StateBasedNodeInstance implements Nod
             nodeInstance.setProcessInstance(getProcessInstance());
             return nodeInstance;
         }
+        Node actualNode = node;
+        // async continuation handling
+        if (node instanceof AsyncEventNode) {
+            actualNode = ((AsyncEventNode) node).getActualNode();
+        } else if (Boolean.parseBoolean((String)node.getMetaData().get("customAsync"))) {
+            actualNode = new AsyncEventNode(node);
+        }
         
-        NodeInstanceFactory conf = NodeInstanceFactoryRegistry.getInstance(getProcessInstance().getKnowledgeRuntime().getEnvironment()).getProcessNodeInstanceFactory(node);
+        NodeInstanceFactory conf = NodeInstanceFactoryRegistry.getInstance(getProcessInstance().getKnowledgeRuntime().getEnvironment()).getProcessNodeInstanceFactory(actualNode);
         if (conf == null) {
             throw new IllegalArgumentException("Illegal node type: " + node.getClass());
         }
-        NodeInstanceImpl nodeInstance = (NodeInstanceImpl) conf.getNodeInstance(node, getProcessInstance(), this);
+        NodeInstanceImpl nodeInstance = (NodeInstanceImpl) conf.getNodeInstance(actualNode, getProcessInstance(), this);
         if (nodeInstance == null) {
             throw new IllegalArgumentException("Illegal node type: " + node.getClass());
         }

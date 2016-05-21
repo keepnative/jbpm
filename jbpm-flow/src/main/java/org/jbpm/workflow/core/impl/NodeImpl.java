@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,6 +159,14 @@ public abstract class NodeImpl implements Node, Serializable, ContextResolver {
     public void removeIncomingConnection(final String type, final Connection connection) {
         validateRemoveIncomingConnection(type, connection);
         this.incomingConnections.get(type).remove(connection);
+    }
+    
+    public void clearIncomingConnection() {
+        this.incomingConnections.clear();
+    }
+    
+    public void clearOutgoingConnection() {
+        this.outgoingConnections.clear();
     }
 
     public void validateRemoveIncomingConnection(final String type, final Connection connection) {

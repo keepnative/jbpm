@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss by Red Hat.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,9 @@ import org.kie.api.KieServices;
 import org.kie.api.builder.ReleaseId;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.api.runtime.process.WorkItem;
-import org.kie.internal.query.QueryContext;
+import org.kie.internal.KieInternalServices;
+import org.kie.internal.process.CorrelationKey;
+import org.kie.api.runtime.query.QueryContext;
 import org.kie.scanner.MavenRepository;
 
 @RunWith(Arquillian.class)
@@ -94,7 +96,7 @@ public class ProcessServiceEJBIntegrationTest extends AbstractTestSupport {
             
         }
         MavenRepository repository = getMavenRepository();
-        repository.deployArtifact(releaseId, kJar1, pom);
+        repository.installArtifact(releaseId, kJar1, pom);
 	}
 	
 	private List<DeploymentUnit> units = new ArrayList<DeploymentUnit>();
@@ -166,6 +168,47 @@ public class ProcessServiceEJBIntegrationTest extends AbstractTestSupport {
     	assertNotNull(processInstanceId);
     	
     	ProcessInstance pi = processService.getProcessInstance(processInstanceId);    	
+    	assertNull(pi);
+    }
+    
+    @Test
+    public void testStartProcessWithCorrelationKey() {
+    	assertNotNull(deploymentService);
+        
+        KModuleDeploymentUnit deploymentUnit = new KModuleDeploymentUnit(GROUP_ID, ARTIFACT_ID, VERSION);
+        
+        deploymentService.deploy(deploymentUnit);
+        units.add(deploymentUnit);
+    	assertNotNull(processService);
+    	
+    	CorrelationKey key = KieInternalServices.Factory.get().newCorrelationKeyFactory().newCorrelationKey("my business key");
+    	
+    	long processInstanceId = processService.startProcess(deploymentUnit.getIdentifier(), "customtask", key);
+    	assertNotNull(processInstanceId);
+    	
+    	ProcessInstance pi = processService.getProcessInstance(key);    	
+    	assertNull(pi);
+    }
+    
+    @Test
+    public void testStartProcessWithParmsWithCorrelationKey() {
+    	assertNotNull(deploymentService);
+        
+        KModuleDeploymentUnit deploymentUnit = new KModuleDeploymentUnit(GROUP_ID, ARTIFACT_ID, VERSION);
+        
+        deploymentService.deploy(deploymentUnit);
+        units.add(deploymentUnit);
+    	assertNotNull(processService);
+    	
+    	Map<String, Object> params = new HashMap<String, Object>();
+        params.put("id", "test");
+        
+        CorrelationKey key = KieInternalServices.Factory.get().newCorrelationKeyFactory().newCorrelationKey("my business key");
+    	
+    	long processInstanceId = processService.startProcess(deploymentUnit.getIdentifier(), "customtask", key, params);
+    	assertNotNull(processInstanceId);
+    	
+    	ProcessInstance pi = processService.getProcessInstance(key);    	
     	assertNull(pi);
     }
     
@@ -300,6 +343,40 @@ public class ProcessServiceEJBIntegrationTest extends AbstractTestSupport {
     	assertNull(pi);
     	pi2 = processService.getProcessInstance(processInstanceId2);    	
     	assertNull(pi2);
+    }
+    
+    @Test
+    public void testStartAndSignal() {
+        assertNotNull(deploymentService);
+        
+        KModuleDeploymentUnit deploymentUnit = new KModuleDeploymentUnit(GROUP_ID, ARTIFACT_ID, VERSION);
+        
+        deploymentService.deploy(deploymentUnit);
+        units.add(deploymentUnit);
+        
+        boolean isDeployed = deploymentService.isDeployed(deploymentUnit.getIdentifier());
+        assertTrue(isDeployed);
+        
+        assertNotNull(processService);
+        
+        long processInstanceId = processService.startProcess(deploymentUnit.getIdentifier(), "signal");
+        assertNotNull(processInstanceId);
+        
+        long processInstanceId2 = processService.startProcess(deploymentUnit.getIdentifier(), "signal");
+        assertNotNull(processInstanceId2);
+        
+        ProcessInstance pi = processService.getProcessInstance(processInstanceId);      
+        assertNotNull(pi);
+        
+        pi = processService.getProcessInstance(processInstanceId2);      
+        assertNotNull(pi);
+        
+        processService.signalEvent(deploymentUnit.getIdentifier(), "MySignal", null);
+        
+        pi = processService.getProcessInstance(processInstanceId);      
+        assertNull(pi);
+        pi = processService.getProcessInstance(processInstanceId2);      
+        assertNull(pi);
     }
     
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import java.util.List;
 @Entity
 @Table(name = "SOUPE_WF_CORRELATION_KEY")
 public class CorrelationKeyInfo extends AbstractBaseEntityWithDomainNoAuditing implements CorrelationKey {
+
+    private static final long serialVersionUID = 4469298702447675428L;
 
     @Id
     @GeneratedValue(generator = "sequenceStyleGenerator")
@@ -142,5 +144,10 @@ public class CorrelationKeyInfo extends AbstractBaseEntityWithDomainNoAuditing i
     public long getId() {
         return id;
     }
+
+	@Override
+	public String toExternalForm() {
+		return CorrelationKeyXmlAdapter.marshalCorrelationKey(this);
+	}
 
 }

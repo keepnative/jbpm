@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss Inc
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,10 @@ public class DeploymentStore {
 	
 	
 	private TransactionalCommandService commandService;
+	
+	public DeploymentStore() {
+	    this.xstream.registerConverter(new TransientObjectConverter());
+	}
 	
 	public void setCommandService(TransactionalCommandService commandService) {
         this.commandService = commandService;
@@ -226,14 +230,17 @@ public class DeploymentStore {
 	protected Map<String, String> getEntryAttributes(String attributes) {
 		logger.debug("Reading attributes string {}", attributes);
 		Map<String, String> attributeMap = new HashMap<String, String>();
-		if (attributes != null && !attributes.isEmpty()) {
+		if (attributes != null && !attributes.trim().isEmpty()) {
 			// expected format: key=value;key=value;...
 			String[] pairs = attributes.split(";");
 			
 			for (String pair : pairs) {
 				String[] keyValue = pair.split("=");
-				
-				attributeMap.put(keyValue[0], keyValue[1]);
+				if (keyValue.length == 2) {
+				    attributeMap.put(keyValue[0], keyValue[1]);
+				} else if (keyValue.length == 1) {
+				    attributeMap.put(keyValue[0], "");
+				}
 			}
 		}
 		

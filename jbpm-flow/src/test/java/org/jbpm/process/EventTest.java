@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -434,6 +434,7 @@ public class EventTest extends AbstractBaseTest  {
             "bnt-1", "ant-1",
             "anl-3", "ant-3",
             "anl-2",
+            "bvc-event", "avc-event",
             "bnl-4",
             "bnt-5", "bnl-5",
             "bnt-1", "ant-1",
@@ -710,24 +711,24 @@ public class EventTest extends AbstractBaseTest  {
             "bps",
             "bnt-0", "bnl-0",
             "bnt-1",
-            "bnt-1:1", "ant-1:1",
+            "bnt-1:4", "ant-1:4",
             "ant-1",
             "anl-0", "ant-0",
             "aps",
             "bvc-event", "avc-event",
-            "bnl-1:2",
-            "bnt-1:3", "bnl-1:3",
-            "bnt-1:4", "bnl-1:4",
+            "bnl-1:5",
+            "bnt-1:6", "bnl-1:6",
+            "bnt-1:7", "bnl-1:7",
             "bnl-1",
-            "bnt-2", "bnl-2",
+            "bnt-8", "bnl-8",
             "bpc",
             "apc",
-            "anl-2", "ant-2",
+            "anl-8", "ant-8",
             "anl-1",
-            "anl-1:1",
-            "anl-1:4", "ant-1:4",
-            "anl-1:3", "ant-1:3",
-            "anl-1:2"
+            "anl-1:4",
+            "anl-1:7", "ant-1:7",
+            "anl-1:6", "ant-1:6",
+            "anl-1:5"
     };
     
     @Test

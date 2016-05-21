@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-parent-with-dependencies</artifactId>
-    <version>6.2.0.Final</version>
+    <version>6.4.0.Final</version>
     <!-- relativePath causes out-of-date problems on hudson slaves -->
     <!--<relativePath>../droolsjbpm-build-bootstrap/pom.xml</relativePath>-->
   </parent>
@@ -14,15 +14,6 @@
   <groupId>org.jbpm</groupId>
   <artifactId>jbpm</artifactId>
   <packaging>pom</packaging>
-  <!-- jBPM has it's own lifecycle and it's own version -->
-  <!-- Important a released version should always follow any of these patterns: -->
-  <!-- major.minor.micro.Alpha[n] -->
-  <!-- major.minor.micro.Beta[n] -->
-  <!-- major.minor.micro.CR[n] -->
-  <!-- major.minor.micro.Final -->
-  <!-- For example: 1.2.3 without the suffix ".Final" corrupts the OSGi eclipse updatesite -->
-  <!-- For example: 1.2.3.M2 corrupts the OSGi eclipse updatesite update order -->
-  <version>6.2.0-SNAPSHOT</version>
 
   <name>jBPM :: Multiproject</name>
   <description>jBPM: a Business Process Management (BPM) Suite</description>
@@ -63,19 +54,6 @@
         <updatePolicy>daily</updatePolicy>
       </snapshots>
     </repository>
-    <repository>
-      <id>soupe-snapshots</id>
-      <name>Soupe Snapshots Repository</name>
-      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-      </snapshots>
-    </repository>
   </repositories>
 
   <scm>
@@ -92,6 +70,7 @@
     <module>jbpm-flow</module>
     <module>jbpm-flow-builder</module>
     <module>jbpm-persistence-jpa</module>
+    <module>jbpm-query-jpa</module>
     <module>jbpm-audit</module>
     <module>jbpm-bpmn2</module>
     <module>jbpm-bpmn2-emfextmodel</module>
@@ -101,7 +80,10 @@
     <module>jbpm-services</module>
     <module>jbpm-document</module>
     <module>jbpm-test</module>
-    <module>jbpm-examples</module>    
+    <module>jbpm-case-mgmt</module>
+    <module>jbpm-test-coverage</module>
+    <module>jbpm-examples</module>
+    <module>jbpm-installer</module>
   </modules>
 
   <build>
@@ -128,31 +110,14 @@
               <exclude>**/*JMS*Test.java</exclude>
             </excludes>
             <argLine>-Xmx1024m -XX:MaxPermSize=128m</argLine>
+            <additionalClasspathElements>
+              <additionalClasspathElement>${maven.jdbc.driver.jar}</additionalClasspathElement>
+            </additionalClasspathElements>
           </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <configuration>
-            <skip>true</skip>
-          </configuration>
-        </plugin>
+        </plugin> 
       </plugins>
     </pluginManagement>
   </build>
-
-  <distributionManagement>
-    <repository>
-      <id>soupe-releases</id>
-      <name>Soupe Releases Repository</name>
-      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>soupe-snapshots</id>
-      <name>Soupe Snapshots Repository</name>
-      <url>http://202.85.222.225:8081/nexus/content/repositories/soupe-snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <profiles>
     <profile>
@@ -168,28 +133,25 @@
     </profile>
 
     <profile>
-      <id>database</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <additionalClasspathElements>
-                <additionalClasspathElement>${maven.jdbc.driver.jar}</additionalClasspathElement>
-              </additionalClasspathElements>
-              <useSystemClassLoader>true</useSystemClassLoader>
-              <includes>
-                <include>**/*Test.java</include>
-              </includes>
-              <excludes>
-                <exclude>**/*AbstractTest.java</exclude>
-                <exclude>**/*JMS*Test.java</exclude>
-              </excludes>
-              <argLine>-Xmx1024m -XX:MaxPermSize=128m</argLine>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <id>mariadb</id>
+      <!-- Important: one still needs to specify the MariaDB JDBC driver jar!
+
+           Following are the default values for MariaDB started via Docker:
+           "docker run &#x002d;&#x002d;name mariadb-jbpm -e MYSQL_ROOT_PASSWORD="admin1234" -d -p 3306:3306 mariadb:latest"
+           (replace the "&#x002d;&#x002d;" with two "-"
+           More info at https://hub.docker.com/_/mariadb/-->
+      <properties>
+        <maven.hibernate.dialect>org.hibernate.dialect.MySQL5InnoDBDialect</maven.hibernate.dialect>
+        <maven.datasource.classname>org.mariadb.jdbc.MySQLDataSource</maven.datasource.classname>
+        <maven.jdbc.driver.class>org.mariadb.jdbc.Driver</maven.jdbc.driver.class>
+        <maven.jdbc.db.name>mysql</maven.jdbc.db.name>
+        <maven.jdbc.db.port>3306</maven.jdbc.db.port>
+        <maven.jdbc.driver.jar/>
+        <maven.jdbc.username>root</maven.jdbc.username>
+        <maven.jdbc.password>admin1234</maven.jdbc.password>
+        <maven.jdbc.url>jdbc:mariadb://localhost:3306/mysql</maven.jdbc.url>
+        <maven.jdbc.schema>mysql</maven.jdbc.schema>
+      </properties>
     </profile>
 
   </profiles>

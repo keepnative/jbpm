@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss Inc
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public final class StartProcessHelper {
         return null;
     }
     
-    protected static Comparator<Process> getComparator(String name) {
+    public static Comparator<Process> getComparator(String name) {
         
         if (comparatorClass != null) {
             try {
@@ -116,13 +116,19 @@ public final class StartProcessHelper {
             if (o1.getName().equals(processName) && o2.getName().equals(processName)) {
                 // then match on version
                 try {
-                    if ((Double.valueOf(o1.getVersion()) > Double.valueOf(o2.getVersion()))) {
+                    if( o1.getVersion() != null && o2.getVersion() != null ) { 
+                        if ((Double.valueOf(o1.getVersion()) > Double.valueOf(o2.getVersion()))) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    } else if( o1.getVersion() != null ) { 
                         return 1;
-                    } else {
-                        return -1;
+                    } else { 
+                        return o1.getId().compareTo(o2.getId());
                     }
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Could not parse version: " + o1.getVersion() + " " + o2.getVersion());
+                    throw new IllegalArgumentException("Could not parse version: " + o1.getVersion() + " " + o2.getVersion(), e);
                 }
             } else if (o1.getName().equals(processName)) {
                 return 1;

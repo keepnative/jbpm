@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,13 @@
 package org.jbpm.services.task.impl.model;
 
 
-import org.jbpm.services.task.utils.CollectionUtils;
-import org.kie.api.task.model.Attachment;
-import org.kie.api.task.model.Comment;
-import org.kie.api.task.model.Group;
-import org.kie.api.task.model.Status;
-import org.kie.api.task.model.User;
-import org.kie.internal.task.api.model.AccessType;
-import org.kie.internal.task.api.model.ContentData;
-import org.kie.internal.task.api.model.FaultData;
-import org.kie.internal.task.api.model.InternalTaskData;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
@@ -35,14 +32,19 @@ import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Temporal;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+
+import org.jbpm.services.task.utils.CollectionUtils;
+import org.kie.api.task.model.Attachment;
+import org.kie.api.task.model.Comment;
+import org.kie.api.task.model.Status;
+import org.kie.api.task.model.User;
+import org.kie.api.task.model.Group;
+import org.kie.internal.task.api.model.AccessType;
+import org.kie.internal.task.api.model.ContentData;
+import org.kie.internal.task.api.model.FaultData;
+import org.kie.internal.task.api.model.InternalTaskData;
 
 @Embeddable
 public class TaskDataImpl implements InternalTaskData {
@@ -102,10 +104,12 @@ public class TaskDataImpl implements InternalTaskData {
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=CommentImpl.class)
     @JoinColumn(name = "TaskData_Comments_Id", nullable = true)
+    @OrderBy("id ASC")
     private List<Comment> comments = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=AttachmentImpl.class)
     @JoinColumn(name = "TaskData_Attachments_Id", nullable = true)
+    @OrderBy("id ASC")
     private List<Attachment> attachments = Collections.emptyList();
 
     public void writeExternal(ObjectOutput out) throws IOException {
@@ -557,7 +561,7 @@ public class TaskDataImpl implements InternalTaskData {
         this.outputType = outputType;
     }
 
-    public long getOutputContentId() {
+    public Long getOutputContentId() {
         return outputContentId;
     }
 
@@ -806,7 +810,7 @@ public class TaskDataImpl implements InternalTaskData {
         }
     }
 
-    static GroupImpl convertToGroupImpl(Group group) { 
+    static GroupImpl convertToGroupImpl(Group group) {
         if( group == null ) { 
             return null;
         }

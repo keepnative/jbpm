@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAud
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.process.audit.event.AuditEvent;
+import org.jbpm.process.audit.event.AuditEventBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -84,12 +85,22 @@ public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing i
     @Column(name = "PROCESS_NAME")
     private String processName;
 
+    @Column(name = "CORRELATION_KEY")
+    private String correlationKey;
+
+    /**
+     * Dependening on the {@link AuditEventBuilder} implementation,
+     * this can be<ul>
+     * <li>The {@link KieRuntime} id</li>
+     * <li>The deployment unit Id</li>
+     *
+     */
     @Column(name = "EXTERNAL_ID")
     private String externalId;
 
     @Column(name = "PROCESS_INSTANCE_DESC")
     private String processInstanceDescription;
-    
+
     public ProcessInstanceLog() {
     }
     
@@ -245,8 +256,8 @@ public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing i
             if (other.processInstanceDescription != null)
                 return false;
         } else if (!processInstanceDescription.equals(other.processInstanceDescription))
-            return false; 
-		return true; 
+            return false;
+		return true;
 	}
 
 	public Integer getStatus() {
@@ -293,8 +304,8 @@ public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing i
         return externalId;
     }
 
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
+    public void setExternalId(String domainId) {
+        this.externalId = domainId;
     }
 
     public String getProcessVersion() {
@@ -312,7 +323,7 @@ public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing i
     public void setProcessName(String processName) {
         this.processName = processName;
     }
-    
+
     public String getProcessInstanceDescription() {
         return processInstanceDescription;
     }
@@ -320,5 +331,13 @@ public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing i
     public void setProcessInstanceDescription(String processInstanceDescription) {
         this.processInstanceDescription = processInstanceDescription;
     }
+
+	public String getCorrelationKey() {
+		return correlationKey;
+	}
+
+	public void setCorrelationKey(String correlationKey) {
+		this.correlationKey = correlationKey;
+	}
 
 }

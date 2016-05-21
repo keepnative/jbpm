@@ -1,5 +1,5 @@
 /**
- * Copyright 2005 JBoss Inc
+ * Copyright 2005 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.drools.core.common.InternalKnowledgeRuntime;
 import org.jbpm.process.core.ContextContainer;
@@ -37,6 +38,7 @@ import org.jbpm.process.instance.context.variable.VariableScopeInstance;
 import org.jbpm.process.instance.impl.ProcessInstanceImpl;
 import org.jbpm.workflow.core.DroolsAction;
 import org.jbpm.workflow.core.impl.NodeImpl;
+import org.jbpm.workflow.core.node.AsyncEventNode;
 import org.jbpm.workflow.core.node.EventNode;
 import org.jbpm.workflow.core.node.EventNodeInterface;
 import org.jbpm.workflow.core.node.EventSubProcessNode;
@@ -71,7 +73,13 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 	private static final long serialVersionUID = 510l;
 
 	private final List<NodeInstance> nodeInstances = new ArrayList<NodeInstance>();;
+
+	@Deprecated // this should be deleted in 7.0.x
 	private long nodeInstanceCounter = 0;
+	@Deprecated // this should be deleted in 7.0.x
+	private boolean deprecatedIdStrategy = Boolean.getBoolean("jbpm.v5.id.strategy");
+	private AtomicLong singleNodeInstanceCounter = new AtomicLong(0);
+	
 	private Map<String, List<EventListener>> eventListeners = new HashMap<String, List<EventListener>>();
 	private Map<String, List<EventListener>> externalEventListeners = new HashMap<String, List<EventListener>>();
 	private List<String> completedNodeIds = new ArrayList<String>();
@@ -80,13 +88,21 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 	private int currentLevel;
 	private boolean persisted = false;
 	private Object faultData;
+	
+	private boolean signalCompletion = true;
 
-	public NodeContainer getNodeContainer() {
+    public NodeContainer getNodeContainer() {
 		return getWorkflowProcess();
 	}
 
 	public void addNodeInstance(final NodeInstance nodeInstance) {
-		((NodeInstanceImpl) nodeInstance).setId(nodeInstanceCounter++);
+	    long id; 
+	    if( deprecatedIdStrategy ) { 
+	       id = nodeInstanceCounter++; 
+	    } else {
+	        id = singleNodeInstanceCounter.getAndIncrement();
+	    }
+		((NodeInstanceImpl) nodeInstance).setId(id);
 		this.nodeInstances.add(nodeInstance);
 	}
 	
@@ -146,6 +162,15 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 		}
 		return null;
 	}
+	
+	public NodeInstance getNodeInstance(long nodeInstanceId, boolean recursive) {
+		for (NodeInstance nodeInstance: getNodeInstances(recursive)) {
+			if (nodeInstance.getId() == nodeInstanceId) {
+				return nodeInstance;
+			}
+		}
+		return null;
+	}
 
 	public List<String> getActiveNodeIds() {
 		List<String> result = new ArrayList<String>();
@@ -197,13 +222,22 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 	}
 
 	public NodeInstance getNodeInstance(final Node node) {
-		NodeInstanceFactory conf = NodeInstanceFactoryRegistry.getInstance(getKnowledgeRuntime().getEnvironment()).getProcessNodeInstanceFactory(node);
+	    Node actualNode = node;
+	    // async continuation handling
+	    if (node instanceof AsyncEventNode) {
+            actualNode = ((AsyncEventNode) node).getActualNode();
+        } else if (Boolean.parseBoolean((String)node.getMetaData().get("customAsync"))) {
+            actualNode = new AsyncEventNode(node);
+        }
+	    
+	    
+		NodeInstanceFactory conf = NodeInstanceFactoryRegistry.getInstance(getKnowledgeRuntime().getEnvironment()).getProcessNodeInstanceFactory(actualNode);
 		if (conf == null) {
 			throw new IllegalArgumentException("Illegal node type: "
 					+ node.getClass());
 		}
-		NodeInstanceImpl nodeInstance = (NodeInstanceImpl) conf
-				.getNodeInstance(node, this, this);
+		NodeInstanceImpl nodeInstance  = (NodeInstanceImpl) conf.getNodeInstance(actualNode, this, this);
+		
 		if (nodeInstance == null) {
 			throw new IllegalArgumentException("Illegal node type: "
 					+ node.getClass());
@@ -212,16 +246,31 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 			getKnowledgeRuntime().insert(nodeInstance);
 		}
 		return nodeInstance;
-	}
-
+	}	
 
 	public long getNodeInstanceCounter() {
-		return nodeInstanceCounter;
+	    if( deprecatedIdStrategy ) { 
+	        return nodeInstanceCounter;
+	    }
+		return singleNodeInstanceCounter.get();
 	}
 
 	public void internalSetNodeInstanceCounter(long nodeInstanceCounter) {
-		this.nodeInstanceCounter = nodeInstanceCounter;
+	    if( deprecatedIdStrategy ) { 
+	       this.nodeInstanceCounter = nodeInstanceCounter; 
+	    } else { 
+	        this.singleNodeInstanceCounter = new AtomicLong(nodeInstanceCounter);
+	    }
 	}
+	
+	public AtomicLong internalGetNodeInstanceCounter() {
+		return this.singleNodeInstanceCounter;
+	}
+
+	public boolean getDeprecatedIdStrategy() { 
+	   return deprecatedIdStrategy; 
+	}
+	
 
 	public WorkflowProcess getWorkflowProcess() {
 		return (WorkflowProcess) getProcess();
@@ -314,18 +363,19 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
             processRuntime.getProcessInstanceManager().removeProcessInstance(this);
             processRuntime.getProcessEventSupport().fireAfterProcessCompleted(this, kruntime);
 
-            
-            RuntimeManager manager = (RuntimeManager) kruntime.getEnvironment().get("RuntimeManager");
-            if (getParentProcessInstanceId() > 0 && manager != null) {
-            	try {
-	                RuntimeEngine runtime = manager.getRuntimeEngine(ProcessInstanceIdContext.get(getParentProcessInstanceId()));
-	                KnowledgeRuntime managedkruntime = (KnowledgeRuntime) runtime.getKieSession();
-	                managedkruntime.signalEvent("processInstanceCompleted:" + getId(), this);
-            	} catch (SessionNotFoundException e) {
-            		// in case no session is found for parent process let's skip signal for process instance completion
-            	}
-            } else {
-                processRuntime.getSignalManager().signalEvent("processInstanceCompleted:" + getId(), this);    
+            if (isSignalCompletion()) {
+                RuntimeManager manager = (RuntimeManager) kruntime.getEnvironment().get("RuntimeManager");
+                if (getParentProcessInstanceId() > 0 && manager != null) {
+                	try {
+    	                RuntimeEngine runtime = manager.getRuntimeEngine(ProcessInstanceIdContext.get(getParentProcessInstanceId()));
+    	                KnowledgeRuntime managedkruntime = (KnowledgeRuntime) runtime.getKieSession();
+    	                managedkruntime.signalEvent("processInstanceCompleted:" + getId(), this);
+                	} catch (SessionNotFoundException e) {
+                		// in case no session is found for parent process let's skip signal for process instance completion
+                	}
+                } else {
+                    processRuntime.getSignalManager().signalEvent("processInstanceCompleted:" + getId(), this);    
+                }
             }
         }
 	}
@@ -476,7 +526,7 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 				}
 			}
 		}
-	}
+	}	
 
 	public void addEventListener(String type, EventListener listener,
 			boolean external) {
@@ -622,5 +672,13 @@ public abstract class WorkflowProcessInstanceImpl extends ProcessInstanceImpl
 	public Object getFaultData() {
 		return faultData;
 	}
+	
+    public boolean isSignalCompletion() {
+        return signalCompletion;
+    }
+    
+    public void setSignalCompletion(boolean signalCompletion) {
+        this.signalCompletion = signalCompletion;
+    }
     
 }

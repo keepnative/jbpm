@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,15 +58,15 @@ public class ForEachTest extends AbstractBaseTest {
             "bvc-3:2:child", "avc-3:2:child",
             "bvc-3:2:child", "avc-3:2:child",
             "bvc-3:2:child", "avc-3:2:child",
-            "bnt-1:2:1", "bnl-1:2:1", "anl-1:2:1", "ant-1:2:1",
-            "bnt-1:3:1", "bnl-1:3:1", "anl-1:3:1", "ant-1:3:1",
-            "bnt-1:4:1", "bnl-1:4:1",
+            "bnt-1:5:9", "bnl-1:5:9", "anl-1:5:9", "ant-1:5:9",
+            "bnt-1:6:13", "bnl-1:6:13", "anl-1:6:13", "ant-1:6:13",
+            "bnt-1:7:16", "bnl-1:7:16",
             "bnl-1",
-            "bnt-2", "bnl-2",
+            "bnt-18", "bnl-18",
             "bpc", "apc",
-            "anl-2", "ant-2",
+            "anl-18", "ant-18",
             "anl-1",
-            "anl-1:4:1", "ant-1:4:1",
+            "anl-1:7:16", "ant-1:7:16",
             "ant-1",
             "anl-0", "ant-0",
             "aps"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss by Red Hat.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@ import javax.persistence.NoResultException;
 import org.drools.core.command.CommandService;
 import org.drools.core.command.impl.GenericCommand;
 import org.jbpm.executor.ExecutorServiceFactory;
+import org.jbpm.executor.impl.event.ExecutorEventSupport;
+import org.kie.api.executor.ErrorInfo;
+import org.kie.api.executor.ExecutorStoreService;
+import org.kie.api.executor.RequestInfo;
+import org.kie.api.executor.STATUS;
 import org.kie.internal.command.Context;
-import org.kie.internal.executor.api.ErrorInfo;
-import org.kie.internal.executor.api.ExecutorStoreService;
-import org.kie.internal.executor.api.RequestInfo;
-import org.kie.internal.executor.api.STATUS;
 
 /**
  * 
@@ -41,8 +42,15 @@ public class JPAExecutorStoreService implements ExecutorStoreService{
 	private EntityManagerFactory emf;
     private CommandService commandService;
     
+    private ExecutorEventSupport eventSupport = new ExecutorEventSupport();
+
+
     public JPAExecutorStoreService(boolean active) {
     	
+    }
+        
+    public void setEventSupport(ExecutorEventSupport eventSupport) {
+        this.eventSupport = eventSupport;
     }
     
     public void setCommandService(CommandService commandService) {
@@ -72,7 +80,7 @@ public class JPAExecutorStoreService implements ExecutorStoreService{
 
 	@Override
 	public RequestInfo findRequest(Long id) {
-		return commandService.execute(new org.jbpm.shared.services.impl.commands.FindObjectCommand<RequestInfo>(id, RequestInfo.class));
+		return commandService.execute(new org.jbpm.shared.services.impl.commands.FindObjectCommand<org.jbpm.executor.entities.RequestInfo>(id, org.jbpm.executor.entities.RequestInfo.class));
 	}
 
 	@Override
@@ -101,7 +109,7 @@ public class JPAExecutorStoreService implements ExecutorStoreService{
 
 	@Override
 	public Runnable buildExecutorRunnable() {
-		return ExecutorServiceFactory.buildRunable(emf);
+		return ExecutorServiceFactory.buildRunable(emf, eventSupport);
 	}
 
 

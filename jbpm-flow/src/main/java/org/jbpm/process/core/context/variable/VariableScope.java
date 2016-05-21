@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,7 @@ public class VariableScope extends AbstractContext {
 	    	}
     	}
 	}
+	
 	/*
 	 * mainly for test coverage to easily switch between settings 
 	 */

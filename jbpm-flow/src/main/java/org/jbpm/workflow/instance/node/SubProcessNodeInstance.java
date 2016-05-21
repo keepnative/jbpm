@@ -1,5 +1,5 @@
 /**
- * Copyright 2005 JBoss Inc
+ * Copyright 2005 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,10 @@ import org.jbpm.process.instance.context.variable.VariableScopeInstance;
 import org.jbpm.process.instance.impl.ContextInstanceFactory;
 import org.jbpm.process.instance.impl.ContextInstanceFactoryRegistry;
 import org.jbpm.process.instance.impl.ProcessInstanceImpl;
+import org.jbpm.process.instance.impl.util.VariableUtil;
+import org.jbpm.workflow.core.node.CompositeContextNode;
 import org.jbpm.workflow.core.node.DataAssociation;
+import org.jbpm.workflow.core.node.ForEachNode;
 import org.jbpm.workflow.core.node.SubProcessNode;
 import org.jbpm.workflow.core.node.Transformation;
 import org.jbpm.workflow.instance.WorkflowProcessInstance;
@@ -110,9 +113,14 @@ public class SubProcessNodeInstance extends StateBasedNodeInstance implements Ev
 	            	try {
 	            		parameterValue = MVELSafeHelper.getEvaluator().eval(mapping.getSources().get(0), new NodeInstanceResolverFactory(this));
 	            	} catch (Throwable t) {
-	            	    logger.error("Could not find variable scope for variable {}", mapping.getSources().get(0));
-	            	    logger.error("when trying to execute SubProcess node {}", getSubProcessNode().getName());
-	            	    logger.error("Continuing without setting parameter.");
+	            	    parameterValue = VariableUtil.resolveVariable(mapping.getSources().get(0), this);
+	                    if (parameterValue != null && !parameterValue.equals(mapping.getSources().get(0))) {
+	                        parameters.put(mapping.getTarget(), parameterValue);
+	                    } else {
+    	            	    logger.error("Could not find variable scope for variable {}", mapping.getSources().get(0));
+    	            	    logger.error("when trying to execute SubProcess node {}", getSubProcessNode().getName());
+    	            	    logger.error("Continuing without setting parameter.");
+	                    }
 	            	}
 	            }
             }
@@ -179,12 +187,19 @@ public class SubProcessNodeInstance extends StateBasedNodeInstance implements Ev
                 RuntimeEngine runtime = manager.getRuntimeEngine(ProcessInstanceIdContext.get());
                 kruntime = (KnowledgeRuntime) runtime.getKieSession();
             }
+            if (getSubProcessNode().getMetaData("MICollectionInput") != null) {
+                // remove foreach input variable to avoid problems when running in variable strict mode
+                parameters.remove(getSubProcessNode().getMetaData("MICollectionInput"));
+            }
+            
 	    	ProcessInstance processInstance = ( ProcessInstance ) kruntime.createProcessInstance(processId, parameters);
 	    	this.processInstanceId = processInstance.getId();
 	    	((ProcessInstanceImpl) processInstance).setMetaData("ParentProcessInstanceId", getProcessInstance().getId());
 	    	((ProcessInstanceImpl) processInstance).setMetaData("ParentNodeInstanceId", getUniqueId());
-	    	((ProcessInstanceImpl) processInstance).setMetaData("ParentNodeId", getSubProcessNode().getUniqueId());
+	    	((ProcessInstanceImpl) processInstance).setMetaData("ParentNodeId", getSubProcessNode().getUniqueId());	    	
 	    	((ProcessInstanceImpl) processInstance).setParentProcessInstanceId(getProcessInstance().getId());
+	    	((ProcessInstanceImpl) processInstance).setSignalCompletion(getSubProcessNode().isWaitForCompletion());
+	    	
 	    	kruntime.startProcessInstance(processInstance.getId());
 	    	if (!getSubProcessNode().isWaitForCompletion()) {
 	    		triggerCompleted();

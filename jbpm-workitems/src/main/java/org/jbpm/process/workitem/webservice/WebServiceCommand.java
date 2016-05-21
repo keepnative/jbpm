@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.dynamic.DynamicClientFactory;
 import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.apache.cxf.message.Message;
+import org.kie.api.executor.Command;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
 import org.kie.api.runtime.process.WorkItem;
-import org.kie.internal.executor.api.Command;
-import org.kie.internal.executor.api.CommandContext;
-import org.kie.internal.executor.api.ExecutionResults;
 import org.kie.internal.runtime.Cacheable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,7 @@ public class WebServiceCommand implements Command, Cacheable {
 	        	parameters = new Object[]{ workItem.getParameter("Parameter")};
 	        }
 	        
-	        Client client = getWSClient(workItem, interfaceRef);
+	        Client client = getWSClient(workItem, interfaceRef, ctx);
 	        
 	        //Override endpoint address if configured.
 	        if (endpointAddress != null && !"".equals(endpointAddress)) {
@@ -102,7 +102,7 @@ public class WebServiceCommand implements Command, Cacheable {
     }
     
     
-    protected synchronized Client getWSClient(WorkItem workItem, String interfaceRef) {
+    protected synchronized Client getWSClient(WorkItem workItem, String interfaceRef, CommandContext ctx) {
         if (clients.containsKey(interfaceRef)) {
             return clients.get(interfaceRef);
         }
@@ -112,7 +112,7 @@ public class WebServiceCommand implements Command, Cacheable {
         if (importLocation != null && importLocation.trim().length() > 0 
                 && importNamespace != null && importNamespace.trim().length() > 0) {
         	
-            Client client = getDynamicClientFactory().createClient(importLocation, new QName(importNamespace, interfaceRef), Thread.currentThread().getContextClassLoader(), null);
+            Client client = getDynamicClientFactory(ctx).createClient(importLocation, new QName(importNamespace, interfaceRef), Thread.currentThread().getContextClassLoader(), null);
             clients.put(interfaceRef, client);
             return client;
         	
@@ -121,7 +121,7 @@ public class WebServiceCommand implements Command, Cacheable {
         return null;
     }
     
-    protected synchronized DynamicClientFactory getDynamicClientFactory() {
+    protected synchronized DynamicClientFactory getDynamicClientFactory(CommandContext ctx) {
     	if (this.dcf == null) {
     		this.dcf = JaxWsDynamicClientFactory.newInstance();
     	}

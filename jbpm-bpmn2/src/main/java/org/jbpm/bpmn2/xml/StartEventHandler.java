@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.drools.core.xml.ExtensibleXmlParser;
 import org.jbpm.bpmn2.core.Error;
 import org.jbpm.bpmn2.core.Escalation;
 import org.jbpm.bpmn2.core.Message;
+import org.jbpm.bpmn2.core.Signal;
 import org.jbpm.compiler.xml.ProcessBuildData;
 import org.jbpm.process.core.event.EventFilter;
 import org.jbpm.process.core.event.EventTransformerImpl;
@@ -102,6 +103,15 @@ public class StartEventHandler extends AbstractNodeHandler {
                 break;
             } else if ("signalEventDefinition".equals(nodeName)) {
                 String type = ((Element) xmlNode).getAttribute("signalRef");
+                Map<String, Signal> signals = (Map<String, Signal>) ((ProcessBuildData) parser.getData()).getMetaData("Signals");
+                
+                if (signals != null && signals.containsKey(type)) {
+                    Signal signal = signals.get(type);                      
+                    type = signal.getName();
+                    if (type == null) {
+                        throw new IllegalArgumentException("Signal definition must have a name attribute");
+                    }
+                }
                 if (type != null && type.trim().length() > 0) {
                     addTriggerWithInMappings(startNode, type);
                 }
@@ -312,7 +322,9 @@ public class StartEventHandler extends AbstractNodeHandler {
 	            Timer timer = startNode.getTimer(); 
 	            xmlDump.append("      <timerEventDefinition>" + EOL);
 	            if (timer != null && (timer.getDelay() != null || timer.getDate() != null)) {
-	                if (timer.getTimeType() == Timer.TIME_DURATION) {
+	                if (timer.getTimeType() == Timer.TIME_DATE) {
+                        xmlDump.append("        <timeDate xsi:type=\"tFormalExpression\">" + XmlDumper.replaceIllegalChars(timer.getDate()) + "</timeDate>" + EOL);
+                    } else if (timer.getTimeType() == Timer.TIME_DURATION) {
 	                    xmlDump.append("        <timeDuration xsi:type=\"tFormalExpression\">" + XmlDumper.replaceIllegalChars(timer.getDelay()) + "</timeDuration>" + EOL);
 	                } else if (timer.getTimeType() == Timer.TIME_CYCLE) {
 	                    
@@ -331,7 +343,9 @@ public class StartEventHandler extends AbstractNodeHandler {
             Timer timer = startNode.getTimer(); 
             xmlDump.append("      <timerEventDefinition>" + EOL);
             if (timer != null && (timer.getDelay() != null || timer.getDate() != null)) {
-                if (timer.getTimeType() == Timer.TIME_DURATION) {
+                if (timer.getTimeType() == Timer.TIME_DATE) {
+                    xmlDump.append("        <timeDate xsi:type=\"tFormalExpression\">" + XmlDumper.replaceIllegalChars(timer.getDate()) + "</timeDate>" + EOL);
+                } else if (timer.getTimeType() == Timer.TIME_DURATION) {
                     xmlDump.append("        <timeDuration xsi:type=\"tFormalExpression\">" + XmlDumper.replaceIllegalChars(timer.getDelay()) + "</timeDuration>" + EOL);
                 } else if (timer.getTimeType() == Timer.TIME_CYCLE) {
                     

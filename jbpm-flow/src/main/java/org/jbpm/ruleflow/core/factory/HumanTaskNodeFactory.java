@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,6 +162,16 @@ public class HumanTaskNodeFactory extends NodeFactory {
     	getHumanTaskNode().addTimer(timer, new DroolsConsequenceAction(dialect, action));
     	return this;
     }
-    
+
+	public HumanTaskNodeFactory workParameter(String name, Object value) {
+		Work work = getHumanTaskNode().getWork();
+		if (work == null) {
+			work = new WorkImpl();
+			getHumanTaskNode().setWork(work);
+		}
+		work.setParameter(name, value);
+		return this;
+	}
+
 }
 

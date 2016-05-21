@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.runtime.manager.impl.deploy;
 
 import static org.kie.scanner.MavenRepository.getMavenRepository;
@@ -22,12 +37,8 @@ import org.kie.api.conf.EventProcessingOption;
 import org.kie.api.runtime.conf.ClockTypeOption;
 import org.kie.internal.io.ResourceFactory;
 import org.kie.scanner.MavenRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractDeploymentDescriptorTest extends AbstractBaseTest {
-	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractDeploymentDescriptorTest.class);
 
 	@After
 	public void cleanup() {
@@ -38,7 +49,7 @@ public abstract class AbstractDeploymentDescriptorTest extends AbstractBaseTest 
 	
 	/* helper methods */
 
-	protected void deployKjar(ReleaseId releaseId, InternalKieModule kJar1) {
+	protected void installKjar(ReleaseId releaseId, InternalKieModule kJar1) {
 		File pom = new File("target/kmodule", "pom.xml");
 		pom.getParentFile().mkdir();
 		try {
@@ -49,7 +60,7 @@ public abstract class AbstractDeploymentDescriptorTest extends AbstractBaseTest 
 
 		}
 		MavenRepository repository = getMavenRepository();
-		repository.deployArtifact(releaseId, kJar1, pom);
+		repository.installArtifact(releaseId, kJar1, pom);
 	}
 	
 	protected String getPom(ReleaseId releaseId, ReleaseId... dependencies) {

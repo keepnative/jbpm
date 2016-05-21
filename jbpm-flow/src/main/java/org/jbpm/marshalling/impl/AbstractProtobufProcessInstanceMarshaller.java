@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,7 @@
 
 package org.jbpm.marshalling.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.protobuf.ExtensionRegistry;
 import org.drools.core.common.DefaultFactHandle;
 import org.drools.core.common.InternalWorkingMemory;
 import org.drools.core.impl.InternalKnowledgeBase;
@@ -45,7 +37,20 @@ import org.jbpm.process.instance.context.swimlane.SwimlaneContextInstance;
 import org.jbpm.process.instance.context.variable.VariableScopeInstance;
 import org.jbpm.workflow.instance.impl.NodeInstanceImpl;
 import org.jbpm.workflow.instance.impl.WorkflowProcessInstanceImpl;
-import org.jbpm.workflow.instance.node.*;
+import org.jbpm.workflow.instance.node.AsyncEventNodeInstance;
+import org.jbpm.workflow.instance.node.CompositeContextNodeInstance;
+import org.jbpm.workflow.instance.node.DynamicNodeInstance;
+import org.jbpm.workflow.instance.node.EventNodeInstance;
+import org.jbpm.workflow.instance.node.EventSubProcessNodeInstance;
+import org.jbpm.workflow.instance.node.ForEachNodeInstance;
+import org.jbpm.workflow.instance.node.HumanTaskNodeInstance;
+import org.jbpm.workflow.instance.node.JoinInstance;
+import org.jbpm.workflow.instance.node.MilestoneNodeInstance;
+import org.jbpm.workflow.instance.node.RuleSetNodeInstance;
+import org.jbpm.workflow.instance.node.StateNodeInstance;
+import org.jbpm.workflow.instance.node.SubProcessNodeInstance;
+import org.jbpm.workflow.instance.node.TimerNodeInstance;
+import org.jbpm.workflow.instance.node.WorkItemNodeInstance;
 import org.kie.api.definition.process.Process;
 import org.kie.api.runtime.process.NodeInstance;
 import org.kie.api.runtime.process.NodeInstanceContainer;
@@ -53,7 +58,14 @@ import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.api.runtime.process.WorkflowProcessInstance;
 import org.kie.api.runtime.rule.FactHandle;
 
-import com.google.protobuf.ExtensionRegistry;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default implementation of a process instance marshaller.
@@ -74,7 +86,8 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
                 .setState( workFlow.getState() )
                 .setNodeInstanceCounter( workFlow.getNodeInstanceCounter() )
                 .setProcessType( workFlow.getProcess().getType() )
-                .setParentProcessInstanceId(workFlow.getParentProcessInstanceId());
+                .setParentProcessInstanceId(workFlow.getParentProcessInstanceId())
+                .setSignalCompletion(workFlow.isSignalCompletion());;
         if (workFlow.getProcessXml() != null) {
             _instance.setProcessXml( workFlow.getProcessXml());
         }
@@ -255,6 +268,14 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
             _content = JBPMMessages.ProcessInstance.NodeInstanceContent.newBuilder()
                     .setType( NodeInstanceType.MILESTONE_NODE )
                     .setMilestone( _ms.build() );
+        } else if ( nodeInstance instanceof AsyncEventNodeInstance ) {
+            JBPMMessages.ProcessInstance.NodeInstanceContent.AsyncEventNode.Builder _asyncEvent = JBPMMessages.ProcessInstance.NodeInstanceContent.AsyncEventNode.newBuilder();
+            _asyncEvent.setEventType(((AsyncEventNodeInstance) nodeInstance).getEventType());
+                    
+            _content = JBPMMessages.ProcessInstance.NodeInstanceContent.newBuilder()
+                    .setType( NodeInstanceType.ASYNC_EVENT_NODE )
+                    .setAsyncEvent(_asyncEvent.build());
+            
         } else if ( nodeInstance instanceof EventNodeInstance ) {
             _content = JBPMMessages.ProcessInstance.NodeInstanceContent.newBuilder()
                     .setType( NodeInstanceType.EVENT_NODE );
@@ -479,6 +500,7 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
         processInstance.setDescription(_instance.getDescription());
         processInstance.setState( _instance.getState() );
         processInstance.setParentProcessInstanceId(_instance.getParentProcessInstanceId());
+        processInstance.setSignalCompletion(_instance.getSignalCompletion());
         long nodeInstanceCounter = _instance.getNodeInstanceCounter();
         processInstance.setKnowledgeRuntime( wm.getKnowledgeRuntime() );
         for( String completedNodeId : _instance.getCompletedNodeIdsList() ) { 
@@ -504,7 +526,7 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
             ExclusiveGroupInstance exclusiveGroupInstance = new ExclusiveGroupInstance();
             processInstance.addContextInstance( ExclusiveGroup.EXCLUSIVE_GROUP, exclusiveGroupInstance );
             for ( Long nodeInstanceId : _excl.getGroupNodeInstanceIdList() ) {
-                NodeInstance nodeInstance = processInstance.getNodeInstance( nodeInstanceId );
+                NodeInstance nodeInstance = ((org.jbpm.workflow.instance.NodeInstanceContainer)processInstance).getNodeInstance( nodeInstanceId, true );
                 if ( nodeInstance == null ) {
                     throw new IllegalArgumentException( "Could not find node instance when deserializing exclusive group instance: " + nodeInstanceId );
                 }
@@ -558,6 +580,7 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
 
         switch ( _node.getContent().getType() ) {
             case COMPOSITE_CONTEXT_NODE :
+            	
             case DYNAMIC_NODE :
                 if ( _node.getContent().getComposite().getVariableCount() > 0 ) {
                     Context variableScope = ((org.jbpm.process.core.Process) ((org.jbpm.process.instance.ProcessInstance)
@@ -587,9 +610,9 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
 
                 for ( JBPMMessages.ProcessInstance.ExclusiveGroupInstance _excl : _node.getContent().getComposite().getExclusiveGroupList() ) {
                     ExclusiveGroupInstance exclusiveGroupInstance = new ExclusiveGroupInstance();
-                    ((org.jbpm.process.instance.ProcessInstance) processInstance).addContextInstance( ExclusiveGroup.EXCLUSIVE_GROUP, exclusiveGroupInstance );
+                    ((CompositeContextNodeInstance) nodeInstance).addContextInstance( ExclusiveGroup.EXCLUSIVE_GROUP, exclusiveGroupInstance );
                     for ( Long nodeInstanceId : _excl.getGroupNodeInstanceIdList() ) {
-                        NodeInstance groupNodeInstance = processInstance.getNodeInstance( nodeInstanceId );
+                        NodeInstance groupNodeInstance = ((org.jbpm.workflow.instance.NodeInstanceContainer)processInstance).getNodeInstance( nodeInstanceId, true );
                         if ( groupNodeInstance == null ) {
                             throw new IllegalArgumentException( "Could not find node instance when deserializing exclusive group instance: " + nodeInstanceId );
                         }
@@ -665,7 +688,7 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
                     Map<String, FactHandle> factInfo = new HashMap<String, FactHandle>();
                     
                     for (TextMapEntry entry : _content.getRuleSet().getMapEntryList()) {
-                        factInfo.put(entry.getName(), new DefaultFactHandle(entry.getValue()));
+                        factInfo.put(entry.getName(), DefaultFactHandle.createFromExternalFormat(entry.getValue()));
                     }
                     
                     ((RuleSetNodeInstance) nodeInstance).setFactHandles(factInfo);
@@ -718,6 +741,10 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
                 nodeInstance = new TimerNodeInstance();
                 ((TimerNodeInstance) nodeInstance).internalSetTimerId( _content.getTimer().getTimerId() );
                 break;
+            case ASYNC_EVENT_NODE :
+                nodeInstance = new AsyncEventNodeInstance();
+                ((AsyncEventNodeInstance) nodeInstance).setEventType(_content.getAsyncEvent().getEventType());
+                break;
             case EVENT_NODE :
                 nodeInstance = new EventNodeInstance();
                 break;
@@ -744,7 +771,7 @@ public abstract class AbstractProtobufProcessInstanceMarshaller
                         timerInstances.add( _timerId );
                     }
                     ((CompositeContextNodeInstance) nodeInstance).internalSetTimerInstances( timerInstances );
-                }
+                }                
                 break;
             case DYNAMIC_NODE :
                 nodeInstance = new DynamicNodeInstance();

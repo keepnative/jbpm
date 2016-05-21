@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.jbpm.services.task.impl.TaskDefServiceImpl;
 import org.jbpm.services.task.impl.TaskIdentityServiceImpl;
 import org.jbpm.services.task.impl.TaskInstanceServiceImpl;
 import org.jbpm.services.task.impl.TaskQueryServiceImpl;
+import org.jbpm.services.task.internals.lifecycle.LifeCycleManager;
 import org.jbpm.services.task.internals.lifecycle.MVELLifeCycleManager;
 import org.jbpm.services.task.rule.TaskRuleService;
 import org.jbpm.services.task.rule.impl.RuleContextProviderImpl;
@@ -69,9 +70,7 @@ public class TaskContext implements org.kie.internal.task.api.TaskContext {
     }  
     
     public TaskInstanceService getTaskInstanceService() {
-        return new TaskInstanceServiceImpl(this, persistenceContext,
-        		new MVELLifeCycleManager(this, persistenceContext, getTaskContentService(), taskEventSupport),
-        		taskEventSupport, environment);
+        return new TaskInstanceServiceImpl(this, persistenceContext, getMvelLifeCycleManager(), taskEventSupport, environment);
     }
     
     public TaskDefService getTaskDefService() {
@@ -83,7 +82,7 @@ public class TaskContext implements org.kie.internal.task.api.TaskContext {
     }
 
     public TaskContentService getTaskContentService() {
-        return new TaskContentServiceImpl(persistenceContext);
+        return new TaskContentServiceImpl(this, persistenceContext, taskEventSupport);
     }
     
     public TaskCommentService getTaskCommentService() {
@@ -145,7 +144,14 @@ public class TaskContext implements org.kie.internal.task.api.TaskContext {
 	public UserGroupCallback getUserGroupCallback() {
 		return (UserGroupCallback) get(EnvironmentName.TASK_USER_GROUP_CALLBACK);
 	}
+
+	private LifeCycleManager getMvelLifeCycleManager() { 
+        return new MVELLifeCycleManager(this, persistenceContext, getTaskContentService(), taskEventSupport);
+	}
 	
+	public TaskEventSupport getTaskEventSupport() {
+	    return this.taskEventSupport;
+	}
 	/*
 	 * currently not used methods 
 	 */

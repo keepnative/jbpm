@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,9 @@ public class DefaultRegisterableItemsFactory extends SimpleRegisterableItemsFact
         Map<String, WorkItemHandler> defaultHandlers = new HashMap<String, WorkItemHandler>();
         //HT handler 
         WorkItemHandler handler = getHTWorkItemHandler(runtime);
-        defaultHandlers.put("Human Task", handler);
+        if (handler != null) {
+            defaultHandlers.put("Human Task", handler);
+        }
         // add any custom registered
         defaultHandlers.putAll(super.getWorkItemHandlers(runtime));
         // add handlers from descriptor
@@ -215,11 +217,17 @@ public class DefaultRegisterableItemsFactory extends SimpleRegisterableItemsFact
         RuntimeManager manager = ((RuntimeEngineImpl)runtime).getManager();
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("ksession", runtime.getKieSession());
-        parameters.put("taskService", runtime.getTaskService());
+        
+        try {
+            parameters.put("taskService", runtime.getTaskService());
+        } catch (UnsupportedOperationException e) {
+            // in case task service was not configured
+        }
         parameters.put("runtimeManager", manager);
         parameters.put("classLoader", getRuntimeManager().getEnvironment().getClassLoader());
         parameters.put("entityManagerFactory", 
         		runtime.getKieSession().getEnvironment().get(EnvironmentName.ENTITY_MANAGER_FACTORY));
+        parameters.put("kieContainer", getRuntimeManager().getKieContainer());
         
         return parameters;
     }
@@ -231,6 +239,7 @@ public class DefaultRegisterableItemsFactory extends SimpleRegisterableItemsFact
         	Map<String, Object> params = new HashMap<String, Object>();
         	params.put("runtimeManager", getRuntimeManager());
         	params.put("classLoader", getRuntimeManager().getEnvironment().getClassLoader());
+        	params.put("kieContainer", getRuntimeManager().getKieContainer());
         	for (ObjectModel model : descriptor.getTaskEventListeners()) {
         		Object taskListener = getInstanceFromModel(model, getRuntimeManager().getEnvironment().getClassLoader(), params);
         		if (taskListener != null) {

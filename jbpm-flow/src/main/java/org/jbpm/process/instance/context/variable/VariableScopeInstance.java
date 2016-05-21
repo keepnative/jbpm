@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,24 @@ public class VariableScopeInstance extends AbstractContextInstance {
     }
 
     public Object getVariable(String name) {
-        return variables.get(name);
+                
+        Object value = variables.get(name);
+        if (value != null) {
+            return value;
+        }
+
+        // support for processInstanceId and parentProcessInstanceId
+        if ("processInstanceId".equals(name) && getProcessInstance() != null) {
+            return getProcessInstance().getId();
+        } else if ("parentProcessInstanceId".equals(name) && getProcessInstance() != null) {
+            return getProcessInstance().getParentProcessInstanceId();
+        }
+        
+        // support for globals
+        if (getProcessInstance() != null && getProcessInstance().getKnowledgeRuntime() != null) {
+            return getProcessInstance().getKnowledgeRuntime().getGlobal(name);
+        }        
+        return null;
     }
 
     public Map<String, Object> getVariables() {
@@ -63,11 +80,7 @@ public class VariableScopeInstance extends AbstractContextInstance {
         	if (value == null) {
         		return;
         	}
-        } else {
-        	if (oldValue.equals(value)) {
-        		return;
-        	}
-        }
+        } 
         ProcessEventSupport processEventSupport = ((InternalProcessRuntime) getProcessInstance()
     		.getKnowledgeRuntime().getProcessRuntime()).getProcessEventSupport();
     	processEventSupport.fireBeforeVariableChanged(

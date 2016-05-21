@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import javax.persistence.Version;
 @Table(name = "SOUPE_WF_CORRELATION_PROP")
 public class CorrelationPropertyInfo extends AbstractBaseEntityWithDomainNoAuditing implements CorrelationProperty<String> {
 
-    public CorrelationPropertyInfo() {
+	public CorrelationPropertyInfo() {
         
     }
     

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,10 @@ public class TaskCommentServiceImpl implements TaskCommentService {
 
     public long addComment(long taskId, Comment comment) {
         Task task = persistenceContext.findTask(taskId);
+        
+        if (persistenceContext.findUser(comment.getAddedBy().getId()) == null) {
+            persistenceContext.persistUser(comment.getAddedBy());
+        }
         persistenceContext.persistComment(comment);
         ((InternalTaskData) task.getTaskData()).addComment(comment);
         return comment.getId();

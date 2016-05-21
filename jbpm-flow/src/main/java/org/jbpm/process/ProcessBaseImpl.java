@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,6 @@
 
 package org.jbpm.process;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.drools.core.SessionConfiguration;
 import org.drools.core.impl.EnvironmentFactory;
 import org.kie.api.definition.KiePackage;
@@ -38,6 +31,13 @@ import org.kie.internal.KnowledgeBase;
 import org.kie.internal.definition.KnowledgePackage;
 import org.kie.internal.runtime.StatefulKnowledgeSession;
 import org.kie.internal.runtime.StatelessKnowledgeSession;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ProcessBaseImpl implements KnowledgeBase {
     
@@ -96,12 +96,12 @@ public class ProcessBaseImpl implements KnowledgeBase {
 
     @Override
     public StatefulKnowledgeSession newStatefulKnowledgeSession() {
-    	return newStatefulKnowledgeSession(new SessionConfiguration(), EnvironmentFactory.newEnvironment());
+    	return newStatefulKnowledgeSession(SessionConfiguration.newInstance(), EnvironmentFactory.newEnvironment());
     }
     
     @Override
     public KieSession newKieSession() {
-        return newKieSession(new SessionConfiguration(), EnvironmentFactory.newEnvironment());
+        return newKieSession(SessionConfiguration.newInstance(), EnvironmentFactory.newEnvironment());
     }
     
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,8 @@ public class ExternalTaskEventListener implements TaskLifeCycleEventListener {
             String userId = task.getTaskData().getActualOwner().getId();
             Map<String, Object> results = new HashMap<String, Object>();
             
-            long contentId = task.getTaskData().getOutputContentId();
-            if (contentId != -1) {
+            Long contentId = task.getTaskData().getOutputContentId();
+            if ( contentId != null && contentId != -1) {
                 Content content = runtime.getTaskService().getContentById(contentId);
                 ClassLoader cl = null;
                 if (manager instanceof InternalRuntimeManager) {
@@ -113,7 +113,11 @@ public class ExternalTaskEventListener implements TaskLifeCycleEventListener {
         if (processInstanceId <= 0) {
             return;
         }
-        RuntimeEngine runtime = getManager(task).getRuntimeEngine(ProcessInstanceIdContext.get(processInstanceId));
+        RuntimeManager manager = getManager(task);
+        if (manager == null) {
+            throw new RuntimeException("No RuntimeManager registered with identifier: " + task.getTaskData().getDeploymentId());
+        }
+        RuntimeEngine runtime = manager.getRuntimeEngine(ProcessInstanceIdContext.get(processInstanceId));
         KieSession session = runtime.getKieSession();
         if (session != null) {
             logger.debug(">> I've recieved an event for a known session (" + task.getTaskData().getProcessSessionId()+")");

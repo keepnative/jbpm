@@ -1,12 +1,19 @@
-package org.jbpm.process.instance;
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+package org.jbpm.process.instance;
 
 import org.drools.core.SessionConfiguration;
 import org.drools.core.command.impl.GenericCommand;
@@ -20,11 +27,12 @@ import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.marshalling.impl.MarshallerReaderContext;
 import org.drools.core.marshalling.impl.MarshallerWriteContext;
 import org.drools.core.marshalling.impl.ProtobufMessages.ActionQueue.Action;
-import org.drools.core.time.AcceptsTimerJobFactoryManager;
+import org.drools.core.phreak.PropagationEntry;
 import org.drools.core.time.TimeUtils;
+import org.drools.core.time.TimerService;
+import org.drools.core.time.impl.CommandServiceTimerJobFactoryManager;
 import org.drools.core.time.impl.CronExpression;
-import org.drools.core.time.impl.DefaultTimerJobFactoryManager;
-import org.drools.core.time.impl.TrackableTimeJobFactoryManager;
+import org.drools.core.time.impl.ThreadSafeTrackableTimeJobFactoryManager;
 import org.jbpm.process.core.event.EventFilter;
 import org.jbpm.process.core.event.EventTransformer;
 import org.jbpm.process.core.event.EventTypeFilter;
@@ -61,6 +69,12 @@ import org.kie.internal.runtime.StatefulKnowledgeSession;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 import org.kie.internal.utils.CompositeClassLoader;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ProcessRuntimeImpl implements InternalProcessRuntime {
 	
 	private InternalKnowledgeRuntime kruntime;
@@ -73,11 +87,11 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
 
 	public ProcessRuntimeImpl(InternalKnowledgeRuntime kruntime) {
 		this.kruntime = kruntime;
-        AcceptsTimerJobFactoryManager jfm = ( AcceptsTimerJobFactoryManager ) kruntime.getTimerService();
-        if ( jfm.getTimerJobFactoryManager() instanceof DefaultTimerJobFactoryManager ) {
-            jfm.setTimerJobFactoryManager( new TrackableTimeJobFactoryManager() );
-        }		
-		((AcceptsTimerJobFactoryManager)kruntime.getTimerService()).setTimerJobFactoryManager( new TrackableTimeJobFactoryManager() );		
+        TimerService timerService = kruntime.getTimerService();
+        if ( !(timerService.getTimerJobFactoryManager() instanceof CommandServiceTimerJobFactoryManager) ) {
+            timerService.setTimerJobFactoryManager( new ThreadSafeTrackableTimeJobFactoryManager() );
+        }
+
 		((CompositeClassLoader) getRootClassLoader()).addClassLoader( getClass().getClassLoader() );
 		initProcessInstanceManager();
 		initSignalManager();
@@ -102,10 +116,10 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
     }
 
 	public ProcessRuntimeImpl(InternalWorkingMemory workingMemory) {
-		AcceptsTimerJobFactoryManager jfm = ( AcceptsTimerJobFactoryManager ) workingMemory.getTimerService();
-		if ( jfm.getTimerJobFactoryManager() instanceof DefaultTimerJobFactoryManager ) {
-		    jfm.setTimerJobFactoryManager( new TrackableTimeJobFactoryManager() );
-		}
+        TimerService timerService = workingMemory.getTimerService();
+        if ( !(timerService.getTimerJobFactoryManager() instanceof CommandServiceTimerJobFactoryManager) ) {
+            timerService.setTimerJobFactoryManager( new ThreadSafeTrackableTimeJobFactoryManager() );
+        }
 		
 		this.kruntime = (InternalKnowledgeRuntime) workingMemory.getKnowledgeRuntime();
 		initProcessInstanceManager();
@@ -187,9 +201,8 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
     public ProcessInstance startProcessInstance(long processInstanceId, String trigger) {
     	try {
             kruntime.startOperation();
-            if ( !kruntime.getActionQueue().isEmpty() ) {
-            	kruntime.executeQueuedActions();
-            }
+
+            kruntime.executeQueuedActions();
             ProcessInstance processInstance = getProcessInstance(processInstanceId);
 	        getProcessEventSupport().fireBeforeProcessStarted( processInstance, kruntime );
 	        ((org.jbpm.process.instance.ProcessInstance) processInstance).start(trigger);
@@ -219,9 +232,8 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
             CorrelationKey correlationKey, Map<String, Object> parameters) {
         try {
             kruntime.startOperation();
-            if ( !kruntime.getActionQueue().isEmpty() ) {
-                kruntime.executeQueuedActions();
-            }
+            kruntime.executeQueuedActions();
+
             final Process process = kruntime.getKieBase().getProcess( processId );
             if ( process == null ) {
                 throw new IllegalArgumentException( "Unknown process ID: " + processId );
@@ -425,9 +437,9 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
                     // signal process instances of that state node
                     String ruleName = event.getMatch().getRule().getName();
                     if ( ruleName.startsWith( "RuleFlowStateNode-" )) {
-                        int index = ruleName.indexOf( "-",
+                        int index = ruleName.indexOf( '-',
                                                       18 );
-                        index = ruleName.indexOf( "-",
+                        index = ruleName.indexOf( '-',
                                                   index + 1 );
                         String eventType = ruleName.substring( 0,
                                                                index );
@@ -518,7 +530,7 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
         
     }
 
-    public static class RegisterStartTimerAction implements WorkingMemoryAction {
+    public static class RegisterStartTimerAction extends PropagationEntry.AbstractPropagationEntry implements WorkingMemoryAction {
 
         private List<StartNode> startNodes;
         private String processId;
@@ -535,16 +547,6 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
         }
         
         @Override
-        public void readExternal(ObjectInput in) throws IOException,
-                ClassNotFoundException {
-            
-        }
-
-        @Override
-        public void writeExternal(ObjectOutput out) throws IOException {            
-        }
-
-        @Override
         public void execute(InternalWorkingMemory workingMemory) {
             initTimer(workingMemory.getKnowledgeRuntime());
         }
@@ -552,11 +554,6 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
         @Override
         public void execute(InternalKnowledgeRuntime kruntime) {
             initTimer(kruntime);
-        }
-
-        @Override
-        public void write(MarshallerWriteContext context) throws IOException {
-            
         }
 
         @Override
@@ -608,7 +605,6 @@ public class ProcessRuntimeImpl implements InternalProcessRuntime {
         }
         
         private void configureTimerInstance(Timer timer, TimerInstance timerInstance) {
-            String s = null;
             long duration = -1;
             switch (timer.getTimeType()) {
             case Timer.TIME_CYCLE:

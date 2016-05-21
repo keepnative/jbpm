@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss by Red Hat.
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,21 @@ import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
 
 import org.jbpm.executor.ExecutorServiceFactory;
+import org.jbpm.executor.impl.ExecutorServiceImpl;
+import org.jbpm.executor.test.CountDownAsyncJobListener;
 import org.jbpm.process.audit.JPAAuditLogService;
 import org.jbpm.process.instance.impl.demo.DoNothingWorkItemHandler;
 import org.jbpm.runtime.manager.impl.DefaultRegisterableItemsFactory;
 import org.jbpm.runtime.manager.impl.jpa.EntityManagerFactoryManager;
 import org.jbpm.services.task.audit.service.TaskJPAAuditService;
 import org.jbpm.services.task.identity.JBossUserGroupCallbackImpl;
-import org.jbpm.test.util.AbstractBaseTest;
-import org.jbpm.test.util.TestUtil;
+import org.jbpm.test.util.AbstractExecutorBaseTest;
+import org.jbpm.test.util.ExecutorTestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutorService;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.manager.RuntimeEngine;
@@ -49,15 +53,13 @@ import org.kie.api.runtime.manager.RuntimeManagerFactory;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.api.runtime.process.WorkItemHandler;
 import org.kie.api.task.UserGroupCallback;
-import org.kie.internal.executor.api.CommandContext;
-import org.kie.internal.executor.api.ExecutorService;
 import org.kie.internal.io.ResourceFactory;
 import org.kie.internal.runtime.manager.RuntimeManagerRegistry;
 import org.kie.internal.runtime.manager.context.EmptyContext;
 
 import bitronix.tm.resource.jdbc.PoolingDataSource;
 
-public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
+public class CleanupLogCommandWithProcessTest extends AbstractExecutorBaseTest {
 
     private PoolingDataSource pds;
     private UserGroupCallback userGroupCallback;  
@@ -66,8 +68,8 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
     private EntityManagerFactory emf = null;
     @Before
     public void setup() {
-        TestUtil.cleanupSingletonSessionId();
-        pds = TestUtil.setupPoolingDataSource();
+        ExecutorTestUtil.cleanupSingletonSessionId();
+        pds = ExecutorTestUtil.setupPoolingDataSource();
         Properties properties= new Properties();
         properties.setProperty("mary", "HR");
         properties.setProperty("john", "HR");
@@ -87,10 +89,17 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
         }
         pds.close();
     }
+    
+    protected CountDownAsyncJobListener configureListener(int threads) {
+        CountDownAsyncJobListener countDownListener = new CountDownAsyncJobListener(threads);
+        ((ExecutorServiceImpl) executorService).addAsyncJobListener(countDownListener);
+        
+        return countDownListener;
+    }
 
     @Test
     public void testRunProcessWithAsyncHandler() throws Exception {
-
+        CountDownAsyncJobListener countDownListener = configureListener(1);
         RuntimeEnvironment environment = RuntimeEnvironmentBuilder.Factory.get().newDefaultBuilder()
                 .userGroupCallback(userGroupCallback)
                 .entityManagerFactory(emf)
@@ -131,7 +140,7 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
         assertEquals(0, getVariableLogSize("ScriptTask"));
         
         scheduleLogCleanup(false, true, false, startDate, "ScriptTask", "yyyy-MM-dd", manager.getIdentifier());
-        Thread.sleep(5 * 1000);
+        countDownListener.waitTillCompleted();
         System.out.println("Aborting process instance " + processInstance.getId());
         processInstance = runtime.getKieSession().getProcessInstance(processInstance.getId());
         assertNotNull(processInstance);
@@ -154,7 +163,8 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
         Thread.sleep(1000);
         
         scheduleLogCleanup(false, false, false, new Date(), "ScriptTask", "yyyy-MM-dd HH:mm:ss", manager.getIdentifier());
-        Thread.sleep(5 * 1000);
+        countDownListener.reset(1);
+        countDownListener.waitTillCompleted();
         
         assertEquals(0, getProcessLogSize("ScriptTask"));
         assertEquals(0, getNodeInstanceLogSize("ScriptTask"));
@@ -193,15 +203,15 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
 	private int getProcessLogSize(String processId) {
         return new JPAAuditLogService(emf).processInstanceLogQuery()
                 .processId(processId)
-                .buildQuery()
+                .build()
                 .getResultList()
                 .size();
     }
 
     private int getTaskLogSize(String processId) {
-        return new TaskJPAAuditService(emf).auditTaskInstanceLogQuery()
+        return new TaskJPAAuditService(emf).auditTaskQuery()
                 .processId(processId)
-                .buildQuery()
+                .build()
                 .getResultList()
                 .size();
     }
@@ -209,7 +219,7 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
     private int getNodeInstanceLogSize(String processId) {
         return new JPAAuditLogService(emf).nodeInstanceLogQuery()
                 .processId(processId)
-                .buildQuery()
+                .build()
                 .getResultList()
                 .size();
     }
@@ -217,7 +227,7 @@ public class CleanupLogCommandWithProcessTest extends AbstractBaseTest {
     private int getVariableLogSize(String processId) {
         return new JPAAuditLogService(emf).variableInstanceLogQuery()
                 .processId(processId)
-                .buildQuery()
+                .build()
                 .getResultList()
                 .size();
     }

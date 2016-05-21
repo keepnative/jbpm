@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JBoss Inc
+ * Copyright 2010 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,10 @@ public abstract class AbstractProcessInstanceFactory implements ProcessInstanceF
 		ProcessInstance processInstance = (ProcessInstance) createProcessInstance();
 		processInstance.setKnowledgeRuntime( kruntime );
         processInstance.setProcess( process );
+        
+        if (correlationKey != null) {
+        	processInstance.getMetaData().put("CorrelationKey", correlationKey);
+        }
         
         ((InternalProcessRuntime) kruntime.getProcessRuntime()).getProcessInstanceManager()
     		.addProcessInstance( processInstance, correlationKey );

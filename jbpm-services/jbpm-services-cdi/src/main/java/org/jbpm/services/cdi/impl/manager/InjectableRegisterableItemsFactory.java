@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss Inc
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.drools.compiler.kie.util.CDIHelper;
 import org.drools.core.util.StringUtils;
 import org.jbpm.process.audit.AbstractAuditLogger;
 import org.jbpm.process.audit.AuditLoggerFactory;
+import org.jbpm.process.audit.JPAWorkingMemoryDbLogger;
 import org.jbpm.process.audit.event.AuditEventBuilder;
 import org.jbpm.process.instance.event.listeners.TriggerRulesEventListener;
 import org.jbpm.runtime.manager.api.qualifiers.Agenda;
@@ -45,6 +46,7 @@ import org.jbpm.runtime.manager.api.qualifiers.Task;
 import org.jbpm.runtime.manager.api.qualifiers.WorkingMemory;
 import org.jbpm.runtime.manager.impl.DefaultRegisterableItemsFactory;
 import org.jbpm.runtime.manager.impl.RuntimeEngineImpl;
+import org.jbpm.runtime.manager.impl.jpa.EntityManagerFactoryManager;
 import org.kie.api.builder.model.KieSessionModel;
 import org.kie.api.event.process.ProcessEventListener;
 import org.kie.api.event.rule.AgendaEventListener;
@@ -55,7 +57,7 @@ import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.WorkItemHandler;
 import org.kie.api.task.TaskLifeCycleEventListener;
-import org.kie.internal.executor.api.ExecutorService;
+import org.kie.api.executor.ExecutorService;
 import org.kie.internal.runtime.conf.AuditMode;
 import org.kie.internal.runtime.conf.DeploymentDescriptor;
 import org.kie.internal.runtime.manager.EventListenerProducer;
@@ -132,6 +134,7 @@ public class InjectableRegisterableItemsFactory extends DefaultRegisterableItems
         parameters.put("ksession", runtime.getKieSession());
         parameters.put("taskService", runtime.getTaskService());
         parameters.put("runtimeManager", manager);
+        parameters.put("kieContainer", getRuntimeManager().getKieContainer());
         try {
             parameters.put("executorService", executorService.get());
         } catch (Exception e) {
@@ -257,6 +260,7 @@ public class InjectableRegisterableItemsFactory extends DefaultRegisterableItems
         parameters.put("ksession", runtime.getKieSession());
         parameters.put("taskService", runtime.getTaskService());
         parameters.put("runtimeManager", manager);
+        parameters.put("kieContainer", getRuntimeManager().getKieContainer());
         try {
             parameters.put("executorService", executorService.get());
         } catch (Exception e) {
@@ -401,7 +405,11 @@ public class InjectableRegisterableItemsFactory extends DefaultRegisterableItems
             }
             auditLogger.setBuilder(getAuditBuilder(engine));
         } else if (descriptor.getAuditMode() == AuditMode.JPA){        
-        	auditLogger = AuditLoggerFactory.newJPAInstance(engine.getKieSession().getEnvironment());
+        	if (descriptor.getPersistenceUnit().equals(descriptor.getAuditPersistenceUnit())) {
+        		auditLogger = AuditLoggerFactory.newJPAInstance(engine.getKieSession().getEnvironment());
+        	} else {
+        		auditLogger = new JPAWorkingMemoryDbLogger(EntityManagerFactoryManager.get().getOrCreate(descriptor.getAuditPersistenceUnit()));
+        	}
         	auditLogger.setBuilder(getAuditBuilder(engine));
         }        
         

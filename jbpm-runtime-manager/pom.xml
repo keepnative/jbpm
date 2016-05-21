@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm</artifactId>
-    <version>6.2.0-SNAPSHOT</version>
+    <version>6.4.0.Final</version>
   </parent>
 
   <artifactId>jbpm-runtime-manager</artifactId>
@@ -76,15 +76,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.bmit.platform.soupe</groupId>
-      <artifactId>soupe-data</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
-    </dependency>
 
 
     <!-- cdi -->
@@ -95,44 +86,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Test -->
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-flow-builder</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-persistence-jpa</artifactId>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.spec.javax.ejb</groupId>
-      <artifactId>jboss-ejb-api_3.1_spec</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-entitymanager</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.btm</groupId>
-      <artifactId>btm</artifactId>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-human-task-core</artifactId>
@@ -148,14 +101,69 @@
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-human-task-jpa</artifactId>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>javax.enterprise</groupId>
       <artifactId>cdi-api</artifactId>
       <optional>true</optional>
     </dependency>
+    
+    <!-- Test -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-flow-builder</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.spec.javax.ejb</groupId>
+      <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-decisiontables</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-test-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--  Test: persistence -->
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-persistence-jpa</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.btm</groupId>
+      <artifactId>btm</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+  
   <build>
     <testResources>
       <testResource>
@@ -205,6 +213,7 @@
               javax.xml.validation,
               org.drools.compiler.kie.builder.impl,
               org.drools.compiler.kie.util,
+              org.drools.core.builder.conf.impl,
               org.drools.core.command,
               org.drools.core.command.impl,
               org.drools.core.common,
@@ -228,6 +237,7 @@
               org.jbpm.process.instance.impl,
               org.jbpm.process.instance.timer,
               org.jbpm.services.task,
+              org.jbpm.services.task.impl,
               org.jbpm.services.task.audit;resolution:=optional,
               org.jbpm.services.task.identity,
               org.jbpm.services.task.lifecycle.listeners,
@@ -239,6 +249,7 @@
               org.kie.api.command,
               org.kie.api.event.process,
               org.kie.api.event.rule,
+              org.kie.api.executor,
               org.kie.api.io,
               org.kie.api.marshalling,
               org.kie.api.runtime,
@@ -249,6 +260,7 @@
               org.kie.api.task,
               org.kie.api.task.model,
               org.kie.internal,
+              org.kie.internal.io,
               org.kie.internal.query,
               org.kie.internal.builder,
               org.kie.internal.command,
@@ -267,9 +279,7 @@
               org.mvel2,
               org.slf4j,
               org.eclipse.aether.artifact;resolution:=optional,
-              org.xml.sax,
-              com.bmit.platform.soupe.data.core.model,
-              org.hibernate.annotations
+              org.xml.sax
             </Import-Package>
             <Private-Package></Private-Package>
             <Export-Package>

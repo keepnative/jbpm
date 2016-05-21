@@ -1,7 +1,22 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.services.task.impl.model.xml;
 
 import static org.jbpm.services.task.impl.model.xml.AbstractJaxbTaskObject.convertListFromInterfaceToJaxbImpl;
-import static org.jbpm.services.task.impl.model.xml.AbstractJaxbTaskObject.unsupported;
+import static org.jbpm.services.task.impl.model.xml.AbstractJaxbTaskObject.*;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -146,8 +161,12 @@ public class JaxbTask implements InternalTask {
     public Task getTask() { 
         InternalTask taskImpl = (InternalTask) TaskModelProvider.getFactory().newTask();
 
-        taskImpl.setId(this.getId());
-        taskImpl.setPriority(this.getPriority());
+        if( this.getId() != null ) { 
+            taskImpl.setId(this.getId());
+        }
+        if( this.priority != null ) { 
+            taskImpl.setPriority(this.getPriority());
+        }
         
         JaxbPeopleAssignments jaxbPeopleAssignments = this.peopleAssignments;
         InternalPeopleAssignments peopleAssignments = (InternalPeopleAssignments) TaskModelProvider.getFactory().newPeopleAssignments();
@@ -173,6 +192,7 @@ public class JaxbTask implements InternalTask {
             List<I18NText> names = new ArrayList<I18NText>();
             for (I18NText n: this.getNames()) {
                 I18NText text = TaskModelProvider.getFactory().newI18NText();
+                ((InternalI18NText) text).setId(n.getId());
                 ((InternalI18NText) text).setLanguage(n.getLanguage());
                 ((InternalI18NText) text).setText(n.getText());
                 names.add(text);
@@ -188,10 +208,11 @@ public class JaxbTask implements InternalTask {
 
         {
             List<I18NText> subjects = new ArrayList<I18NText>();
-            for (I18NText n: this.getSubjects()) {
+            for (I18NText s: this.getSubjects()) {
                 I18NText text = TaskModelProvider.getFactory().newI18NText();
-                ((InternalI18NText) text).setLanguage(n.getLanguage());
-                ((InternalI18NText) text).setText(n.getText());
+                ((InternalI18NText) text).setId(s.getId());
+                ((InternalI18NText) text).setLanguage(s.getLanguage());
+                ((InternalI18NText) text).setText(s.getText());
                 subjects.add(text);
             }
             taskImpl.setSubjects(subjects);
@@ -204,10 +225,11 @@ public class JaxbTask implements InternalTask {
 
         {
             List<I18NText> descriptions = new ArrayList<I18NText>();
-            for (I18NText n: this.getDescriptions()) {
+            for (I18NText d: this.getDescriptions()) {
                 I18NText text = TaskModelProvider.getFactory().newI18NText();
-                ((InternalI18NText) text).setLanguage(n.getLanguage());
-                ((InternalI18NText) text).setText(n.getText());
+                ((InternalI18NText) text).setId(d.getId());
+                ((InternalI18NText) text).setLanguage(d.getLanguage());
+                ((InternalI18NText) text).setText(d.getText());
                 descriptions.add(text);
             }
             taskImpl.setDescriptions(descriptions);
@@ -253,7 +275,9 @@ public class JaxbTask implements InternalTask {
             List<Comment> comments = new ArrayList<Comment>(jaxbComments.size());
             for( Comment jaxbComment : jaxbComments ) { 
                 InternalComment comment = (InternalComment) TaskModelProvider.getFactory().newComment();
-                comment.setId(jaxbComment.getId());
+                if( jaxbComment.getId() != null ) {
+                    comment.setId(jaxbComment.getId());
+                }
                 comment.setAddedAt(jaxbComment.getAddedAt());
                 comment.setAddedBy(createUser(((JaxbComment) jaxbComment).getAddedById()));
                 comment.setText(jaxbComment.getText());
@@ -266,7 +290,9 @@ public class JaxbTask implements InternalTask {
             List<Attachment> attachments = new ArrayList<Attachment>(jaxbAttachments.size());
             for( Attachment jaxbAttach : jaxbAttachments ) { 
                 InternalAttachment attach = (InternalAttachment) TaskModelProvider.getFactory().newAttachment();
-                attach.setId(jaxbAttach.getId());
+                if( jaxbAttach.getId() != null ) { 
+                    attach.setId(jaxbAttach.getId());
+                }
                 attach.setName(jaxbAttach.getName());
                 attach.setContentType(jaxbAttach.getContentType());
                 attach.setAttachedAt(jaxbAttach.getAttachedAt());
@@ -327,7 +353,7 @@ public class JaxbTask implements InternalTask {
 
     @Override
     public int getPriority() {
-        return priority;
+        return whenNull(priority, 0);
     }
 
     @Override
@@ -437,17 +463,17 @@ public class JaxbTask implements InternalTask {
     }
 
     public void setVersion(Integer version) {
-        unsupported(Task.class);
+        unsupported(Void.class);
     }
 
     @Override
     public int getVersion() {
-        return (Integer) unsupported(Task.class);
+        return unsupported(int.class);
     }
 
     @Override
     public Delegation getDelegation() {
-        return (Delegation) unsupported(Task.class);
+        return unsupported(Delegation.class);
     }
 
     @Override

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package org.jbpm.process.workitem.bpmn2;
 
 import static org.junit.Assert.assertEquals;
@@ -24,6 +39,7 @@ import org.jbpm.process.builder.ProcessBuilderFactoryServiceImpl;
 import org.jbpm.process.instance.ProcessRuntimeFactoryServiceImpl;
 import org.jbpm.process.workitem.webservice.WebServiceWorkItemHandler;
 import org.jbpm.test.util.AbstractBaseTest;
+import org.jbpm.test.util.CountDownProcessEventListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +61,7 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
     private static final Logger logger = LoggerFactory.getLogger(JaxWSServiceTaskTest.class);
     
     private Endpoint endpoint;
+    private Endpoint endpoint2;
     private SimpleService service;
 
     @Before
@@ -73,11 +90,13 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
         assertEquals(ProcessInstance.STATE_COMPLETED, processInstance.getState());
     }
     
-    @Test
+    @Test(timeout=10000)
     public void testAsyncServiceInvocation() throws Exception {
+        CountDownProcessEventListener countDownListener = new CountDownProcessEventListener("Service Task", 1);
         KnowledgeBaseFactory.setKnowledgeBaseServiceFactory(new KnowledgeBaseFactoryServiceImpl());
         KnowledgeBase kbase = readKnowledgeBase();
         StatefulKnowledgeSession ksession = createSession(kbase);
+        ksession.addEventListener(countDownListener);
         ksession.getWorkItemManager().registerWorkItemHandler("Service Task", new ServiceTaskHandler(ksession));
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("s", "john");
@@ -85,7 +104,7 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
         
         WorkflowProcessInstance processInstance = (WorkflowProcessInstance) ksession.startProcess("WebServiceTask", params);
         logger.info("Service invoked async...waiting to get reponse back");
-        Thread.sleep(5000);
+        countDownListener.waitTillCompleted();
         String variable = (String) processInstance.getVariable("s");
         assertEquals("Hello john", variable);
         assertEquals(ProcessInstance.STATE_COMPLETED, processInstance.getState());
@@ -106,8 +125,7 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
         String variable = (String) processInstance.getVariable("s");
         assertNull(variable);
         assertEquals(ProcessInstance.STATE_COMPLETED, processInstance.getState());
-        // uncomment sleep to see that web service was in fact invoked
-        // Thread.sleep(5000);
+
     }
     
     @Test
@@ -127,7 +145,7 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
         assertTrue(error instanceof WorkItemHandlerRuntimeException);
     }
     
-    @Test
+    @Test(timeout=10000)
     public void testServiceInvocationProcessWith2WSImports() throws Exception {
         KnowledgeBaseFactory.setKnowledgeBaseServiceFactory(new KnowledgeBaseFactoryServiceImpl());
         KnowledgeBase kbase = readKnowledgeBase();
@@ -143,7 +161,7 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
         assertEquals(ProcessInstance.STATE_COMPLETED, processInstance.getState());
     }
     
-    @Test
+    @Test(timeout=10000)
     public void testServiceInvocationProcessWith2WSImportsWSHandler() throws Exception {
         KnowledgeBaseFactory.setKnowledgeBaseServiceFactory(new KnowledgeBaseFactoryServiceImpl());
         KnowledgeBase kbase = readKnowledgeBase();
@@ -194,10 +212,12 @@ public class JaxWSServiceTaskTest extends AbstractBaseTest {
     private void startWebService() {
         this.service = new SimpleService();
         this.endpoint = Endpoint.publish("http://127.0.0.1:9876/HelloService/greeting", service);
+        this.endpoint2 = Endpoint.publish("http://127.0.0.1:9877/SecondService/greeting", service);
     }
 
     private void stopWebService() {
         this.endpoint.stop();
+        this.endpoint2.stop();
     }
     
     private static KnowledgeBase readKnowledgeBase() throws Exception {

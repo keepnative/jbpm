@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 JBoss by Red Hat.
+ * Copyright 2013 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,15 @@ import org.jbpm.process.instance.context.exception.ExceptionScopeInstance;
 import org.jbpm.workflow.instance.NodeInstanceContainer;
 import org.jbpm.workflow.instance.WorkflowProcessInstance;
 import org.jbpm.workflow.instance.node.WorkItemNodeInstance;
+import org.kie.api.executor.CommandCallback;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutionResults;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.manager.RuntimeManager;
 import org.kie.api.runtime.process.NodeInstance;
 import org.kie.api.runtime.process.WorkItem;
 import org.kie.internal.command.Context;
-import org.kie.internal.executor.api.CommandCallback;
-import org.kie.internal.executor.api.CommandContext;
-import org.kie.internal.executor.api.ExecutionResults;
 import org.kie.internal.runtime.manager.RuntimeManagerRegistry;
 import org.kie.internal.runtime.manager.context.ProcessInstanceIdContext;
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class AsyncWorkItemHandlerCmdCallback implements CommandCallback {
         RuntimeManager manager = getRuntimeManager(ctx);
         RuntimeEngine engine = manager.getRuntimeEngine(ProcessInstanceIdContext.get((Long) ctx.getData("processInstanceId")));
         try {
-            engine.getKieSession().getWorkItemManager().completeWorkItem(workItem.getId(), results.getData());
+            engine.getKieSession().getWorkItemManager().completeWorkItem(workItem.getId(), results == null? null : results.getData());
         } finally {
             manager.disposeRuntimeEngine(engine);
         }

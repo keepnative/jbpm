@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2012 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import java.util.Map;
 
 import org.drools.compiler.kie.builder.impl.InternalKieModule;
 import org.jbpm.kie.services.impl.KModuleDeploymentUnit;
-import org.jbpm.kie.test.util.AbstractBaseTest;
+import org.jbpm.kie.services.impl.model.ProcessAssetDesc;
+import org.jbpm.kie.test.util.AbstractKieServicesBaseTest;
 import org.jbpm.services.api.model.DeploymentUnit;
 import org.jbpm.services.api.model.ProcessDefinition;
 import org.jbpm.services.api.model.UserTaskDefinition;
@@ -42,7 +43,7 @@ import org.kie.api.builder.ReleaseId;
 import org.kie.scanner.MavenRepository;
 
 
-public class BPMN2DataServicesTest extends AbstractBaseTest {
+public class BPMN2DataServicesTest extends AbstractKieServicesBaseTest {
 
     private List<DeploymentUnit> units = new ArrayList<DeploymentUnit>();
     
@@ -60,6 +61,7 @@ public class BPMN2DataServicesTest extends AbstractBaseTest {
         processes.add("repo/processes/general/callactivity.bpmn");
         processes.add("repo/processes/general/BPMN2-UserTask.bpmn2");
         processes.add("repo/processes/itemrefissue/itemrefissue.bpmn");
+        processes.add("repo/processes/general/ObjectVariableProcess.bpmn2");
         
         InternalKieModule kJar1 = createKieJar(ks, releaseId, processes);
         File pom = new File("target/kmodule", "pom.xml");
@@ -110,11 +112,15 @@ public class BPMN2DataServicesTest extends AbstractBaseTest {
         assertEquals(procDef.getPackageName(), "defaultPackage");
         assertEquals(procDef.getType(), "RuleFlow");
         assertEquals(procDef.getVersion(), "3");
+        assertNotNull(((ProcessAssetDesc)procDef).getEncodedProcessSource());
 
         Collection<UserTaskDefinition> processTasks = bpmn2Service.getTasksDefinitions(deploymentUnit.getIdentifier(), processId);
         
         assertEquals(3, processTasks.size());
         Map<String, String> processData = bpmn2Service.getProcessVariables(deploymentUnit.getIdentifier(), processId);
+        assertEquals("String", processData.get("approval_document"));
+        assertEquals("String", processData.get("approval_translatedDocument"));
+        assertEquals("String", processData.get("approval_reviewComment"));
         
         assertEquals(3, processData.keySet().size());
         Map<String, String> taskInputMappings = bpmn2Service.getTaskInputMappings(deploymentUnit.getIdentifier(), processId, "Write a Document" );
@@ -148,15 +154,23 @@ public class BPMN2DataServicesTest extends AbstractBaseTest {
         
         assertEquals(4, processTasks.size());
         Map<String, String> processData = bpmn2Service.getProcessVariables(deploymentUnit.getIdentifier(), processId);
-        
+
         assertEquals(9, processData.keySet().size());
         Map<String, String> taskInputMappings = bpmn2Service.getTaskInputMappings(deploymentUnit.getIdentifier(), processId, "HR Interview" );
         
         assertEquals(4, taskInputMappings.keySet().size());
+        assertEquals("java.lang.String", taskInputMappings.get("TaskName"));
+        assertEquals("Object", taskInputMappings.get("GroupId"));
+        assertEquals("Object", taskInputMappings.get("Comment"));
+        assertEquals("String", taskInputMappings.get("in_name"));
         
         Map<String, String> taskOutputMappings = bpmn2Service.getTaskOutputMappings(deploymentUnit.getIdentifier(), processId, "HR Interview" );
         
         assertEquals(4, taskOutputMappings.keySet().size());
+        assertEquals("String", taskOutputMappings.get("out_name"));
+        assertEquals("Integer", taskOutputMappings.get("out_age"));
+        assertEquals("String", taskOutputMappings.get("out_mail"));
+        assertEquals("Integer", taskOutputMappings.get("out_score"));
         
         Map<String, Collection<String>> associatedEntities = bpmn2Service.getAssociatedEntities(deploymentUnit.getIdentifier(), processId);
         
@@ -264,5 +278,33 @@ public class BPMN2DataServicesTest extends AbstractBaseTest {
         
         procDef = bpmn2Service.getProcessDefinition(deploymentUnit.getIdentifier(), processId);
         assertNull(procDef);
+    }
+
+    @Test
+    public void testObjectVariable() throws IOException {
+        assertNotNull(deploymentService);
+
+        DeploymentUnit deploymentUnit = new KModuleDeploymentUnit(GROUP_ID, ARTIFACT_ID, VERSION);
+
+        deploymentService.deploy(deploymentUnit);
+        units.add(deploymentUnit);
+
+        String processId = "ObjectVariableProcess";
+
+        ProcessDefinition procDef = bpmn2Service.getProcessDefinition(deploymentUnit.getIdentifier(), processId);
+        assertNotNull(procDef);
+
+        assertEquals(procDef.getId(), "ObjectVariableProcess");
+        assertEquals(procDef.getName(), "ObjectVariableProcess");
+        assertEquals(procDef.getKnowledgeType(), "PROCESS");
+        assertEquals(procDef.getPackageName(), "defaultPackage");
+        assertEquals(procDef.getType(), "RuleFlow");
+        assertEquals(procDef.getVersion(), "1");
+
+        Map<String, String> processData = bpmn2Service.getProcessVariables(deploymentUnit.getIdentifier(), processId);
+
+        assertEquals("String", processData.get("type"));
+        assertEquals("Object", processData.get("myobject"));
+        assertEquals(2, processData.keySet().size());
     }
 }

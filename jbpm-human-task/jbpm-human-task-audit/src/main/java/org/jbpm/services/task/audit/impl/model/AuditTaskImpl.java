@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 JBoss by Red Hat.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jbpm.services.task.audit.impl.model;
 
 import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
@@ -37,7 +36,7 @@ import java.util.Date;
 @Entity
 @Table(name = "SOUPE_WF_AUDIT_TASK")
 public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditTask {
-    
+
 	private static final long serialVersionUID = 5388016330549830043L;
 
 
@@ -58,7 +57,7 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
 
     @Column(name = "STATUS")
     private String status;
-    @Temporal(javax.persistence.TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "ACTIVATION_TIME")
     private Date activationTime;
     @Column(name = "NAME")
@@ -87,14 +86,16 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     private long parentId;
     @Column(name = "DEPLOYMENT_ID")
     private String deploymentId;
+    private Long workItemId;
+
 
     public AuditTaskImpl() {
     }
-    
-    public AuditTaskImpl(long taskId, String name, String status, Date activationTime, 
-            String actualOwner , String description, int priority, String createdBy, 
-            Date createdOn, Date dueDate, long processInstanceId, String processId, 
-            long processSessionId, String deploymentId, long parentId) {
+
+    public AuditTaskImpl(long taskId, String name, String status, Date activationTime,
+            String actualOwner, String description, int priority, String createdBy,
+            Date createdOn, Date dueDate, long processInstanceId, String processId,
+            long processSessionId, String deploymentId, long parentId, long workItemId) {
         this.taskId = taskId;
         this.status = status;
         this.activationTime = activationTime;
@@ -110,6 +111,7 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
         this.processSessionId = processSessionId;
         this.deploymentId = deploymentId;
         this.parentId = parentId;
+        this.workItemId = workItemId;
     }
 
     public Long getId() {
@@ -119,8 +121,7 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     public void setId(Long id) {
         this.id = id;
     }
-    
-    
+
     @Override
     public long getTaskId() {
         return taskId;
@@ -266,8 +267,15 @@ public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implem
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
     }
-    
-    
 
+    @Override
+    public long getWorkItemId() {
+        return workItemId;
+    }
+
+    @Override
+    public void setWorkItemId(long workItemId) {
+        this.workItemId = workItemId;
+    }
 
 }

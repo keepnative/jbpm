@@ -1,5 +1,5 @@
 /**
- * Copyright 2005 JBoss Inc
+ * Copyright 2005 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,6 +162,10 @@ public class RuleFlowProcessValidator implements ProcessValidator {
                     errors.add(new ProcessValidationErrorImpl(process,
                         "Start node '" + node.getName() + "' [" + node.getId() + "] has no outgoing connection."));
                 }
+                if (startNode.getTimer() != null) {                    
+                    validateTimer(startNode.getTimer(), node, process, errors);
+                    
+                }
             } else if (node instanceof EndNode) {
                 final EndNode endNode = (EndNode) node;
                 endNodeFound = true;
@@ -311,35 +315,34 @@ public class RuleFlowProcessValidator implements ProcessValidator {
                 if (actionNode.getAction() == null) {
                     errors.add(new ProcessValidationErrorImpl(process,
                         "Action node '" + node.getName() + "' [" + node.getId() + "] has no action."));
-                } else {
-                    if (actionNode.getAction() instanceof DroolsConsequenceAction) {
-                        DroolsConsequenceAction droolsAction = (DroolsConsequenceAction) actionNode.getAction();
-                        String actionString = droolsAction.getConsequence();
-                        if (actionString == null) {
-                            errors.add(new ProcessValidationErrorImpl(process,
+                } else if (actionNode.getAction() instanceof DroolsConsequenceAction) {
+                    DroolsConsequenceAction droolsAction = (DroolsConsequenceAction) actionNode.getAction();
+                    String actionString = droolsAction.getConsequence();
+                    if (actionString == null) {
+                        errors.add(new ProcessValidationErrorImpl(process,
                                 "Action node '" + node.getName() + "' [" + node.getId() + "] has empty action."));
-                        } else if( "mvel".equals( droolsAction.getDialect() ) ) {
-                            try {
-                                ExpressionCompiler compiler = new ExpressionCompiler(actionString);
-                                compiler.setVerifying(true);
-                                ParserContext parserContext = new ParserContext();
-                                //parserContext.setStrictTypeEnforcement(true);
-                                compiler.compile(parserContext);
-                                List<ErrorDetail> mvelErrors = parserContext.getErrorList();
-                                if (mvelErrors != null) {
-                                    for (Iterator<ErrorDetail> iterator = mvelErrors.iterator(); iterator.hasNext(); ) {
-                                        ErrorDetail error = iterator.next();
-                                        errors.add(new ProcessValidationErrorImpl(process,
+                    } else if( "mvel".equals( droolsAction.getDialect() ) ) {
+                        try {                                                      
+                            ParserContext parserContext = new ParserContext();
+                            //parserContext.setStrictTypeEnforcement(true);
+                            ExpressionCompiler compiler = new ExpressionCompiler(actionString, parserContext);
+                            compiler.setVerifying(true);
+                            compiler.compile();
+                            List<ErrorDetail> mvelErrors = parserContext.getErrorList();
+                            if (mvelErrors != null) {
+                                for (Iterator<ErrorDetail> iterator = mvelErrors.iterator(); iterator.hasNext(); ) {
+                                    ErrorDetail error = iterator.next();
+                                    errors.add(new ProcessValidationErrorImpl(process,
                                             "Action node '" + node.getName() + "' [" + node.getId() + "] has invalid action: " + error.getMessage() + "."));
-                                    }
                                 }
-                            } catch (Throwable t) {
-                                errors.add(new ProcessValidationErrorImpl(process,
-                                    "Action node '" + node.getName() + "' [" + node.getId() + "] has invalid action: " + t.getMessage() + "."));
                             }
+                        } catch (Throwable t) {
+                            errors.add(new ProcessValidationErrorImpl(process,
+                                    "Action node '" + node.getName() + "' [" + node.getId() + "] has invalid action: " + t.getMessage() + "."));
                         }
-                        validateCompensationIntermediateOrEndEvent(actionNode, process, errors);
                     }
+                    // TODO: validation for "java" and "drools" scripts!
+                    validateCompensationIntermediateOrEndEvent(actionNode, process, errors);
                 }
             } else if (node instanceof WorkItemNode) {
                 final WorkItemNode workItemNode = (WorkItemNode) node;
@@ -459,7 +462,7 @@ public class RuleFlowProcessValidator implements ProcessValidator {
                                        "Start node '" + startNode.getName() + "' [" + startNode.getId() + "] in Event SubProcess '" + compositeNode.getName() + "' [" + compositeNode.getId() + "] must contain a trigger (event definition)." ));
                            }
                        }
-                   }
+                   }                  
                    
                 } else {
                 	Boolean isForCompensationObject = (Boolean) compositeNode.getMetaData("isForCompensation"); 
@@ -470,6 +473,12 @@ public class RuleFlowProcessValidator implements ProcessValidator {
                 	if( compositeNode.getOutgoingConnections().size() == 0 && !Boolean.TRUE.equals(isForCompensationObject)) { 
                         errors.add(new ProcessValidationErrorImpl(process, 
                                 "Embedded subprocess '" + node.getName() + "' [" + node.getId() + "] does not have outgoing connection." ));
+                    }
+                }
+                
+                if (compositeNode.getTimers() != null) {
+                    for (Timer timer: compositeNode.getTimers().keySet()) {
+                        validateTimer(timer, node, process, errors);
                     }
                 }
                 validateNodes(compositeNode.getNodes(), errors, process);
@@ -639,17 +648,14 @@ public class RuleFlowProcessValidator implements ProcessValidator {
 	    		try {
 	    		    switch (timer.getTimeType()) {
 	    	        case Timer.TIME_CYCLE:
-	    	            if (timer.getPeriod() != null) {
-	    	                TimeUtils.parseTimeString(timer.getDelay());
-	    	            } else {
-	    	            	if (CronExpression.isValidExpression(timer.getDelay())){
-	    	            		
-	    	            	} else {
-	    	            	
-		    	                // when using ISO date/time period is not set
-		    	                DateTimeUtils.parseRepeatableDateTime(timer.getDelay());
-	    	            	}
-	    	            }
+    	            	if (CronExpression.isValidExpression(timer.getDelay())){
+    	            		
+    	            	} else {
+    	            	
+	    	                // when using ISO date/time period is not set
+	    	                DateTimeUtils.parseRepeatableDateTime(timer.getDelay());
+    	            	}
+    	            
 	    	            break;
 	    	        case Timer.TIME_DURATION:
 
@@ -673,12 +679,30 @@ public class RuleFlowProcessValidator implements ProcessValidator {
     	if (timer.getPeriod() != null) {
     		if (!timer.getPeriod().contains("#{")) {
 	    		try {
-	    			TimeUtils.parseTimeString(timer.getPeriod());
+	    		    if (CronExpression.isValidExpression(timer.getPeriod())){
+                        
+                    } else {
+                     // when using ISO date/time period is not set
+                        DateTimeUtils.parseRepeatableDateTime(timer.getPeriod());
+                    }
 	    		} catch (RuntimeException e) {
 	    			errors.add(new ProcessValidationErrorImpl(process,
 	                    "Could not parse period '" + timer.getPeriod() + "' of node '" + node.getName() + "': " + e.getMessage()));
 	    		}
     		}
+    	}
+    	
+    	if (timer.getDate() != null) {
+    	    if (!timer.getDate().contains("#{")) {
+                try {
+                    
+                    DateTimeUtils.parseDateAsDuration(timer.getDate());
+                    
+                } catch (RuntimeException e) {
+                    errors.add(new ProcessValidationErrorImpl(process,
+                        "Could not parse date '" + timer.getDate() + "' of node '" + node.getName() + "': " + e.getMessage()));
+                }
+            }
     	}
     }
 
@@ -699,14 +723,6 @@ public class RuleFlowProcessValidator implements ProcessValidator {
                 DataType varDataType = var.getType();                
                 if (varDataType == null) {
                     errors.add(new ProcessValidationErrorImpl(process, "Variable '" + var.getName() + "' has no type."));
-                }
-                
-                String stringType = varDataType.getStringType();
-                if (varDataType instanceof ObjectDataType) {
-                     if (stringType.startsWith("java.lang")) {
-                        logger.warn("Process variable {} uses ObjectDataType for default type (java.lang) which could cause problems with setting variables, use dedicated type instead",
-                                var.getName());
-                    }
                 }
             }
         }
