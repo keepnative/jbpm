@@ -115,9 +115,11 @@ public class TaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements 
     // Default Behaviour
     @Column(name = "SUB_TASK_STRATEGY")
     private SubTasksStrategy subTaskStrategy = SubTasksStrategy.NoAction;
-    
+
+    @Column(name = "TASK_TYPE")
     private String               taskType;
-    
+
+    @Column(name = "FORM_NAME")
     private String               formName;
     
     @Basic
