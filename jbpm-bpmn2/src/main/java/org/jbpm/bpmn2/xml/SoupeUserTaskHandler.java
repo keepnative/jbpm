@@ -68,7 +68,7 @@ public class SoupeUserTaskHandler extends UserTaskHandler {
                     if ("inputParameter".equals(childNode.getNodeName())) {
                         humanTaskNode.getWork().setParameter(
                                 childNode.getAttributes().getNamedItem("name").getNodeValue(),
-                                childNode.getNodeValue());
+                                childNode.getFirstChild().getNodeValue());
                     }
                 }
 
