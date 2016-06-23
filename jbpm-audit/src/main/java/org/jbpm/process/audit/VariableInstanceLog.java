@@ -42,7 +42,7 @@ public class VariableInstanceLog extends AbstractBaseEntityWithDomainNoAuditing 
 	
 	private static final long serialVersionUID = 510l;
 	@Transient
-	private final int VARIABLE_LOG_LENGTH = Integer.parseInt(System.getProperty("org.jbpm.var.log.length", "255"));
+	private static final int VARIABLE_LOG_LENGTH = 2000;
 
 	// entity fields
 
@@ -72,9 +72,9 @@ public class VariableInstanceLog extends AbstractBaseEntityWithDomainNoAuditing 
     private String variableInstanceId;
     @Column(name = "VARIABLE_ID")
     private String variableId;
-    @Column(name = "VALUE")
+    @Column(name = "VALUE", length = VARIABLE_LOG_LENGTH)
     private String value;
-    @Column(name = "OLD_VALUE")
+    @Column(name = "OLD_VALUE", length = VARIABLE_LOG_LENGTH)
     private String oldValue;
 
     @Column(name = "EXTERNAL_ID")
