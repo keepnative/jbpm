@@ -76,7 +76,7 @@ public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing i
     @Column(name = "DURATION")
     private Long duration;
 
-    @Column(name="IDENTITY")
+    @Column(name="IDENTIFIER")
     private String identity;
 
     @Column(name = "PROCESS_VERSION")
