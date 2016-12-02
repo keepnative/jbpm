@@ -34,7 +34,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 @Entity
-@Table(name = "SOUPE_WF_EMAIL_NOTF_HEADER")
+@Table(name = "SOUPE_WF_EMAIL_HEAD")
 public class EmailNotificationHeaderImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.EmailNotificationHeader {
 
     @Id
@@ -43,7 +43,7 @@ public class EmailNotificationHeaderImpl extends AbstractBaseEntityWithDomainNoA
             name = "sequenceStyleGenerator",
             strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
             parameters = {
-                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_EMAIL_NOTF_HEADER")
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_EMAIL_HEAD")
             }
     )
     @Column(name = "ID")

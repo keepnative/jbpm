@@ -34,7 +34,7 @@ public class DelegationImpl  implements org.kie.internal.task.api.model.Delegati
     private AllowedToDelegate                    allowedToDelegate;
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "SOUPE_WF_DELEGATION_DELEGATE", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
+    @JoinTable(name = "SOUPE_WF_DELEGATION_DLGT", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> delegates = Collections.emptyList();
     
     public void writeExternal(ObjectOutput out) throws IOException {

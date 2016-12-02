@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 
 @Entity
-@Table(name="SOUPE_WF_COMPLETION_BEHAVIOR")
+@Table(name="SOUPE_WF_COMPLETION_BHAV")
 public class CompletionBehaviorImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
 
     @Id
@@ -41,7 +41,7 @@ public class CompletionBehaviorImpl extends AbstractBaseEntityWithDomainNoAuditi
             name = "sequenceStyleGenerator",
             strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
             parameters = {
-                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_COMPLETION_BEHAVIOR")
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_COMPLETION_BHAV")
             }
     )
     @Column(name = "ID")

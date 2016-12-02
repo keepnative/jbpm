@@ -40,7 +40,7 @@ public class EmailNotificationImpl extends NotificationImpl implements org.kie.i
 
     @OneToMany(cascade = CascadeType.ALL)
     @MapKeyColumn(name="mapkey")
-    @JoinTable(name = "SOUPE_WF_EMAIL_NOTF_HEAD_LANG", joinColumns = @JoinColumn(name = "EMAIL_HEADER_ID"), inverseJoinColumns = @JoinColumn(name = "NOTIFICATION_ID"))
+    @JoinTable(name = "SOUPE_WF_EMAIL_HEAD_LANG", joinColumns = @JoinColumn(name = "EMAIL_HEADER_ID"), inverseJoinColumns = @JoinColumn(name = "NOTIFICATION_ID"))
     private Map<LanguageImpl, EmailNotificationHeaderImpl> emailHeaders;
     
     @Override

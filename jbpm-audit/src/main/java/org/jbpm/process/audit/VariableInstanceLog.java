@@ -35,7 +35,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-@Table(name="SOUPE_WF_VARIABLE_INST_LOG")
+@Table(name="SOUPE_WF_VAR_INST_LOG")
 public class VariableInstanceLog extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.VariableInstanceLog {
     
 	private static final Logger logger = LoggerFactory.getLogger(VariableInstanceLog.class);
@@ -52,7 +52,7 @@ public class VariableInstanceLog extends AbstractBaseEntityWithDomainNoAuditing 
 			name = "sequenceStyleGenerator",
 			strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
 			parameters = {
-					@Parameter(name = "sequence_name", value = "S_SOUPE_WF_VARIABLE_INST_LOG")
+					@Parameter(name = "sequence_name", value = "S_SOUPE_WF_VAR_INST_LOG")
 			}
 	)
 	@Column(name = "ID")

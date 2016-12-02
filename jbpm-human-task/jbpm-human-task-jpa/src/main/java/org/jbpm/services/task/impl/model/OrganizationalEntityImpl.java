@@ -28,7 +28,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 @Entity
-@Table(name="SOUPE_WF_ORGANIZATIONAL_ENTITY")
+@Table(name="SOUPE_WF_ORG_ENTITY")
 public abstract class OrganizationalEntityImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalOrganizationalEntity {
 
     @Id

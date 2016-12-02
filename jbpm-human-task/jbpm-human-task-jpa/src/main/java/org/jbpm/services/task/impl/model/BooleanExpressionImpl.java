@@ -31,7 +31,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 @Entity
-@Table(name="SOUPE_WF_BOOLEAN_EXPRESSION")
+@Table(name="SOUPE_WF_BOOLEAN_EXPR")
 public class BooleanExpressionImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.BooleanExpression {
 
     @Id
@@ -40,7 +40,7 @@ public class BooleanExpressionImpl extends AbstractBaseEntityWithDomainNoAuditin
             name = "sequenceStyleGenerator",
             strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
             parameters = {
-                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_BOOLEAN_EXPRESSION")
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_BOOLEAN_EXPR")
             }
     )
     @Column(name = "ID")

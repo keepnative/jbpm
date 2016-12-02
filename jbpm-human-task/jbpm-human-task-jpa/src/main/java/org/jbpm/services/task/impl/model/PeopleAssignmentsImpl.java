@@ -52,7 +52,7 @@ public class PeopleAssignmentsImpl implements InternalPeopleAssignments {
     private List<OrganizationalEntity> excludedOwners         = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "SOUPE_WF_TASK_STAKE_HOLDER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
+    @JoinTable(name = "SOUPE_WF_TASK_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> taskStakeholders       = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)

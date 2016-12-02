@@ -60,7 +60,7 @@ public class ReassignmentImpl extends AbstractBaseEntityWithDomainNoAuditing imp
     private List<I18NText>             documentation = Collections.emptyList();
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "SOUPE_WF_RASIN_POTENTIAL_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
+    @JoinTable(name = "SOUPE_WF_RASIN_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> potentialOwners = Collections.emptyList();
 
     public void writeExternal(ObjectOutput out) throws IOException {
