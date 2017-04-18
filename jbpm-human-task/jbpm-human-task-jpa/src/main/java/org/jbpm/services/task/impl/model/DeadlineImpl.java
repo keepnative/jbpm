@@ -15,7 +15,7 @@
  */
 package org.jbpm.services.task.impl.model;
 
-import com.bmit.platform.soupe.data.core.model.AbstractBaseEntityWithDomainNoAuditing;
+import com.bmit.platform.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
