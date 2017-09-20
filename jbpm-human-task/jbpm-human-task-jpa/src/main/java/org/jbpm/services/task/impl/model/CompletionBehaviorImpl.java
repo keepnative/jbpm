@@ -19,19 +19,32 @@
  */
 package org.jbpm.services.task.impl.model;
 
-import java.io.Serializable;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 
 @Entity
-@Table(name="CompletionBehavior")
-public class CompletionBehaviorImpl implements Serializable {
+@Table(name="SOUPE_WF_COMPLETION_BHAV")
+public class CompletionBehaviorImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_COMPLETION_BHAV")
+            }
+    )
+    @Column(name = "ID")
     private Long id;
     
     

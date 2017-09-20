@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -19,57 +19,68 @@
  */
 package org.jbpm.services.task.audit.impl.model;
 
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Date;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.kie.internal.task.api.model.TaskEvent;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.Version;
-
-import org.kie.internal.task.api.model.TaskEvent;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Date;
 
 /**
  *
  */
 @Entity
-@Table(name = "TaskEvent")
-@SequenceGenerator(name = "taskEventIdSeq", sequenceName = "TASK_EVENT_ID_SEQ")
-public class TaskEventImpl implements TaskEvent, Externalizable {
+@Table(name="SOUPE_WF_TASK_EVENT")
+public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskEvent {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO, generator = "taskEventIdSeq")
-  @Column(name = "id")
+  @GeneratedValue(generator = "sequenceStyleGenerator")
+  @GenericGenerator(
+          name = "sequenceStyleGenerator",
+          strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+          parameters = {
+                  @org.hibernate.annotations.Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK_EVENT")
+          }
+  )
+  @Column(name = "ID")
   private Long id;
 
   @Version
-  @Column(name = "OPTLOCK")
+  @Column(name = "VERSION")
   private Integer version;
 
+  @Column(name = "TASK_ID")
   private Long taskId;
 
+  @Column(name = "WORK_ITEM_ID")
   private Long workItemId;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "TYPE")
   private TaskEventType type;
 
+  @Column(name = "PROCESS_INSTANCE_ID")
   private Long processInstanceId;
 
+  @Column(name = "USER_ID")
   private String userId;
 
+  @Column(name = "MESSAGE")
   private String message;
 
   @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+  @Column(name = "LOG_TIME")
   private Date logTime;
 
   public TaskEventImpl() {
@@ -155,19 +166,19 @@ public class TaskEventImpl implements TaskEvent, Externalizable {
   public void readExternal(ObjectInput in) throws IOException,
           ClassNotFoundException {
 	  id = in.readLong();
-	  
+
 	  processInstanceId = in.readLong();
-	  
+
 	  taskId = in.readLong();
-	  
+
 	  type = TaskEventType.valueOf(in.readUTF());
 
       message = in.readUTF();
 
 	  userId = in.readUTF();
-	  
+
 	  workItemId = in.readLong();
-	  
+
 	  if (in.readBoolean()) {
           logTime = new Date(in.readLong());
       }
@@ -176,11 +187,11 @@ public class TaskEventImpl implements TaskEvent, Externalizable {
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
 	  out.writeLong( id );
-	  
+
 	  out.writeLong( processInstanceId );
-	  
+
 	  out.writeLong( taskId );
-	  
+
 	  if (type != null) {
       	out.writeUTF(type.name());
       } else {
@@ -199,9 +210,9 @@ public class TaskEventImpl implements TaskEvent, Externalizable {
       } else {
       	out.writeUTF("");
       }
-	  
+
 	  out.writeLong( workItemId );
-	  
+
 	  if (logTime != null) {
           out.writeBoolean(true);
           out.writeLong(logTime.getTime());

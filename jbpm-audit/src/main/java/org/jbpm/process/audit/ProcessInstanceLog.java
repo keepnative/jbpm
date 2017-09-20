@@ -16,75 +16,91 @@
 
 package org.jbpm.process.audit;
 
-import java.io.Serializable;
-import java.util.Date;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.jbpm.process.audit.event.AuditEvent;
+import org.jbpm.process.audit.event.AuditEventBuilder;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import org.jbpm.process.audit.event.AuditEvent;
-import org.jbpm.process.audit.event.AuditEventBuilder;
-import org.kie.api.runtime.KieRuntime;
+import java.io.Serializable;
+import java.util.Date;
 
 @Entity
-@SequenceGenerator(name="processInstanceLogIdSeq", sequenceName="PROC_INST_LOG_ID_SEQ", allocationSize=1)
-public class ProcessInstanceLog implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.ProcessInstanceLog {
+@Table(name="SOUPE_WF_PROC_INST_LOG")
+public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.ProcessInstanceLog {
     
 	private static final long serialVersionUID = 510l;
-	
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="processInstanceLogIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_PROC_INST_LOG")
+            }
+    )
+    @Column(name = "ID")
 	private long id;
-	
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
-    
+
+    @Column(name = "PROCESS_ID")
     private String processId;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "start_date")
+    @Column(name = "START_DATE")
     private Date start;
-    
+
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "end_date")
+    @Column(name = "END_DATE")
     private Date end;
     
-    @Column(nullable=true)
+    @Column(name = "STATUS", nullable=true)
     private Integer status;
-    
-    @Column(nullable=true)
+
+    @Column(name = "PARENT_PROCESS_INSTANCE_ID", nullable=true)
     private Long parentProcessInstanceId;
-    
-    @Column(nullable=true)
-    private String outcome;    
-    
+
+    @Column(name = "OUTCOME", nullable=true)
+    private String outcome;
+
+    @Column(name = "DURATION")
     private Long duration;
-    
-    @Column(name="user_identity")
-    private String identity;    
-    
+
+    @Column(name="IDENTIFIER")
+    private String identity;
+
+    @Column(name = "PROCESS_VERSION")
     private String processVersion;
-    
+
+    @Column(name = "PROCESS_NAME")
     private String processName;
-    
+
+    @Column(name = "CORRELATION_KEY")
     private String correlationKey;
-   
+
     /**
-     * Dependening on the {@link AuditEventBuilder} implementation, 
+     * Dependening on the {@link AuditEventBuilder} implementation,
      * this can be<ul>
      * <li>The {@link KieRuntime} id</li>
      * <li>The deployment unit Id</li>
-     * 
+     *
      */
+    @Column(name = "EXTERNAL_ID")
     private String externalId;
-    
+
+    @Column(name = "PROCESS_INSTANCE_DESC")
     private String processInstanceDescription;
-    
+
     public ProcessInstanceLog() {
     }
     
@@ -240,8 +256,8 @@ public class ProcessInstanceLog implements Serializable, AuditEvent, org.kie.api
             if (other.processInstanceDescription != null)
                 return false;
         } else if (!processInstanceDescription.equals(other.processInstanceDescription))
-            return false; 
-		return true; 
+            return false;
+		return true;
 	}
 
 	public Integer getStatus() {
@@ -307,7 +323,7 @@ public class ProcessInstanceLog implements Serializable, AuditEvent, org.kie.api
     public void setProcessName(String processName) {
         this.processName = processName;
     }
-    
+
     public String getProcessInstanceDescription() {
         return processInstanceDescription;
     }

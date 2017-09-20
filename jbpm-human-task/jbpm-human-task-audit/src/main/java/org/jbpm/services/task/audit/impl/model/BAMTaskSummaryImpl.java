@@ -15,53 +15,68 @@
  */
 package org.jbpm.services.task.audit.impl.model;
 
-import java.io.Serializable;
-import java.util.Date;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
+import java.io.Serializable;
+import java.util.Date;
 
 @Entity
-@Table(name="BAMTaskSummary")
-@SequenceGenerator(name="bamTaskIdSeq", sequenceName="BAM_TASK_ID_SEQ")
-public class BAMTaskSummaryImpl implements Serializable {
+@Table(name="SOUPE_WF_BAM_TASK_SUMMARY")
+public class BAMTaskSummaryImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
 
     private static final long serialVersionUID = 2793651602463099870L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="bamTaskIdSeq")
-    @Column(name = "pk")
+	@Id
+	@GeneratedValue(generator = "sequenceStyleGenerator")
+	@GenericGenerator(
+			name = "sequenceStyleGenerator",
+			strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+			parameters = {
+					@org.hibernate.annotations.Parameter(name = "sequence_name", value = "S_SOUPE_WF_BAM_TASK_SUMMARY")
+			}
+	)
+	@Column(name = "ID")
     private Long pk  = 0L;
     
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private Integer version;
-    
+
+    @Column(name = "TASK_ID")
     private long taskId;
-    
+
+    @Column(name = "TASK_NAME")
     private String taskName;
-    
+
+    @Column(name = "STATUS")
     private String status;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "CREATED_DATE")
     private Date createdDate;
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "START_DATE")
     private Date startDate;
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "END_DATE")
     private Date endDate;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
     
      // Initiator
+    @Column(name = "USER_ID")
     private String userId;
+    @Column(name = "DURATION")
     private Long duration;
 
     public BAMTaskSummaryImpl() {

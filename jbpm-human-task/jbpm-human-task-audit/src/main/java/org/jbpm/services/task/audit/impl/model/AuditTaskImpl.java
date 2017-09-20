@@ -15,53 +15,80 @@
  */
 package org.jbpm.services.task.audit.impl.model;
 
-import java.io.Serializable;
-import java.util.Date;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.kie.internal.task.api.AuditTask;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
-
-import org.kie.internal.task.api.AuditTask;
+import javax.persistence.TemporalType;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  *
  * @author salaboy
  */
 @Entity
-@SequenceGenerator(name = "auditIdSeq", sequenceName = "AUDIT_ID_SEQ", allocationSize = 1)
-public class AuditTaskImpl implements Serializable, AuditTask {
+@Table(name = "SOUPE_WF_AUDIT_TASK")
+public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditTask {
 
-    private static final long serialVersionUID = 5388016330549830043L;
+	private static final long serialVersionUID = 5388016330549830043L;
+
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "auditIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @org.hibernate.annotations.Parameter(name = "sequence_name", value = "S_SOUPE_WF_AUDIT_TASK")
+            }
+    )
+    @Column(name = "ID")
     private Long id;
 
+    @Column(name = "TASK_ID")
     private Long taskId;
 
+    @Column(name = "STATUS")
     private String status;
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "ACTIVATION_TIME")
     private Date activationTime;
+    @Column(name = "NAME")
     private String name;
+    @Column(name = "DESCRIPTION")
     private String description;
+    @Column(name = "PRIORITY")
     private int priority;
+    @Column(name = "CREATED_BY")
     private String createdBy;
+    @Column(name = "ACTUAL_OWNER")
     private String actualOwner;
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "CREATED_ON")
     private Date createdOn;
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "DUE_DATE")
     private Date dueDate;
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
+    @Column(name = "PROCESS_ID")
     private String processId;
+    @Column(name = "PROCESS_SESSION_ID")
     private long processSessionId;
+    @Column(name = "PARENT_ID")
     private long parentId;
+    @Column(name = "DEPLOYMENT_ID")
     private String deploymentId;
+    @Column(name = "WORK_ITEM_ID")
     private Long workItemId;
-   
+
 
     public AuditTaskImpl() {
     }

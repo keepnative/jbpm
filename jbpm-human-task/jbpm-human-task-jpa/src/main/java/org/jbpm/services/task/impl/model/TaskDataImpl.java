@@ -1,12 +1,12 @@
 /**
  * Copyright 2010 Red Hat, Inc. and/or its affiliates.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,15 +25,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Temporal;
+import javax.persistence.*;
 
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.Attachment;
@@ -49,66 +41,90 @@ import org.kie.internal.task.api.model.InternalTaskData;
 @Embeddable
 public class TaskDataImpl implements InternalTaskData {
     @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
     private Status status = Status.Created;         // initial default state
 
+    @Column(name = "PREVIOUS_STATUS")
     private Status previousStatus = null;
 
-    @ManyToOne(targetEntity=UserImpl.class)
+    @ManyToOne(targetEntity = UserImpl.class)
+    @JoinColumn(name = "ACTUAL_OWNER")
     private User actualOwner;
 
-    @ManyToOne(targetEntity=UserImpl.class)
+    @ManyToOne(targetEntity = UserImpl.class)
+    @JoinColumn(name = "CREATED_BY")
     private User createdBy;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "CREATED_ON")
     private Date createdOn;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "ACTIVATION_TIME")
     private Date activationTime;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "EXPIRATION_TIME")
     private Date expirationTime;
 
+    @Column(name = "SKIPABLE")
     private boolean skipable;
 
+    @Column(name = "WORK_ITEM_ID")
     private long workItemId = -1;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId = -1;
 
+    @Column(name = "DOCUMENT_ACCESS_TYPE")
     private AccessType documentAccessType;
 
+    @Column(name = "DOCUMENT_TYPE")
     private String documentType;
 
+    @Column(name = "DOCUMENT_CONTENT_ID")
     private long documentContentId = -1;
 
+    @Column(name = "OUTPUT_ACCESS_TYPE")
     private AccessType outputAccessType;
 
+    @Column(name = "OUTPUT_TYPE")
     private String outputType;
 
+    @Column(name = "OUTPUT_CONTENT_ID")
     private long outputContentId = -1;
 
+    @Column(name = "FAULT_NAME")
     private String faultName;
 
+    @Column(name = "FAULT_ACCESS_TYPE")
     private AccessType faultAccessType;
 
+    @Column(name = "FAULT_TYPE")
     private String faultType;
 
+    @Column(name = "FAULT_CONTENT_ID")
     private long faultContentId = -1;
 
+    @Column(name = "PARENT_ID")
     private long parentId = -1;
-    
+
+    @Column(name = "PROCESS_ID")
     private String processId;
-    
+
+    @Column(name = "DEPLOYMENT_ID")
     private String deploymentId;
-    
+
+    @Column(name = "PROCESS_SESSION_ID")
     private long processSessionId;
 
-    @OneToMany(cascade = CascadeType.ALL, targetEntity=CommentImpl.class)
-    @JoinColumn(name = "TaskData_Comments_Id", nullable = true)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = CommentImpl.class)
+    @JoinColumn(name = "TASKDATA_COMMENTS_ID", nullable = true)
     @OrderBy("id ASC")
     private List<Comment> comments = Collections.emptyList();
 
-    @OneToMany(cascade = CascadeType.ALL, targetEntity=AttachmentImpl.class)
-    @JoinColumn(name = "TaskData_Attachments_Id", nullable = true)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = AttachmentImpl.class)
+    @JoinColumn(name = "TASKDATA_ATTACHMENTS_ID", nullable = true)
     @OrderBy("id ASC")
     private List<Attachment> attachments = Collections.emptyList();
 
@@ -254,14 +270,14 @@ public class TaskDataImpl implements InternalTaskData {
         } else {
             out.writeBoolean(false);
         }
-        
+
         if (processId != null) {
             out.writeBoolean(true);
             out.writeUTF(processId);
         } else {
             out.writeBoolean(false);
         }
-        
+
         if (processSessionId != -1) {
             out.writeBoolean(true);
             out.writeLong(processSessionId);
@@ -360,15 +376,15 @@ public class TaskDataImpl implements InternalTaskData {
         if (in.readBoolean()) {
             parentId = in.readLong();
         }
-        
+
         if (in.readBoolean()) {
             processId = in.readUTF();
         }
-        
+
         if (in.readBoolean()) {
             processSessionId = in.readLong();
         }
-        
+
         comments = CollectionUtils.readCommentList(in);
         attachments = CollectionUtils.readAttachmentList(in);
 
@@ -470,32 +486,32 @@ public class TaskDataImpl implements InternalTaskData {
     public long getWorkItemId() {
         return workItemId;
     }
-    
+
     public void setProcessInstanceId(long processInstanceId) {
-    	this.processInstanceId = processInstanceId;
+        this.processInstanceId = processInstanceId;
     }
-    
+
     public long getProcessInstanceId() {
-    	return processInstanceId;
+        return processInstanceId;
     }
-    
+
     public String getProcessId() {
-		return processId;
-	}
+        return processId;
+    }
 
-	public void setProcessId(String processId) {
-		this.processId = processId;
-	}
-	
-	public long getProcessSessionId() {
-		return processSessionId;
-	}
+    public void setProcessId(String processId) {
+        this.processId = processId;
+    }
 
-	public void setProcessSessionId(long processSessionId) {
-		this.processSessionId = processSessionId;
-	}
+    public long getProcessSessionId() {
+        return processSessionId;
+    }
 
-	/**
+    public void setProcessSessionId(long processSessionId) {
+        this.processSessionId = processSessionId;
+    }
+
+    /**
      * Sets the document content data for this task data. It will set the <field>documentContentId</field> from the specified
      * documentID, <field>documentAccessType</field>, <field>documentType</field> from the specified
      * documentConentData.
@@ -700,7 +716,7 @@ public class TaskDataImpl implements InternalTaskData {
     }
 
     public void setAttachments(List<Attachment> attachments) {
-        this.attachments =  attachments;
+        this.attachments = attachments;
     }
 
     public long getParentId() {
@@ -780,10 +796,10 @@ public class TaskDataImpl implements InternalTaskData {
         if (processId == null) {
             if (other.processId != null) return false;
         } else if (!processId.equals(other.processId)) return false;
-        if (processSessionId != other.processSessionId) return false;        
+        if (processSessionId != other.processSessionId) return false;
         if (deploymentId == null) {
             if (other.deploymentId != null) return false;
-        } else if (!deploymentId.equals(other.deploymentId)) return false;        
+        } else if (!deploymentId.equals(other.deploymentId)) return false;
         return CollectionUtils.equals(attachments,
                 other.attachments) && CollectionUtils.equals(comments,
                 other.comments);
@@ -798,25 +814,25 @@ public class TaskDataImpl implements InternalTaskData {
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
     }
-    
-    static UserImpl convertToUserImpl(User user) { 
-        if( user == null ) { 
+
+    static UserImpl convertToUserImpl(User user) {
+        if (user == null) {
             return null;
         }
-        if( user instanceof UserImpl ) { 
+        if (user instanceof UserImpl) {
             return (UserImpl) user;
-        } else { 
+        } else {
             return new UserImpl(user.getId());
         }
     }
 
-    static GroupImpl convertToGroupImpl(Group group) { 
-        if( group == null ) { 
+    static GroupImpl convertToGroupImpl(Group group) {
+        if (group == null) {
             return null;
         }
-        if( group instanceof GroupImpl ) { 
+        if (group instanceof GroupImpl) {
             return (GroupImpl) group;
-        } else { 
+        } else {
             return new GroupImpl(group.getId());
         }
     }

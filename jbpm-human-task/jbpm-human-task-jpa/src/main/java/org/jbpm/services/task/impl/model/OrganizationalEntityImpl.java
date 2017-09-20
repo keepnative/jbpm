@@ -16,44 +16,46 @@
 
 package org.jbpm.services.task.impl.model;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.kie.internal.task.api.model.InternalOrganizationalEntity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-import org.kie.internal.task.api.model.InternalOrganizationalEntity;
-
 @Entity
-@Table(name="OrganizationalEntity")
-public abstract class OrganizationalEntityImpl implements InternalOrganizationalEntity {
-    
+@Table(name="SOUPE_WF_ORG_ENTITY")
+public abstract class OrganizationalEntityImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalOrganizationalEntity {
+
     @Id
-    private String id;   
-    
+    @Column(name = "ID")
+    private String id;
+
     public OrganizationalEntityImpl() {
     }
-        
-    
+
+
     public OrganizationalEntityImpl(String id ) {
         this.id = id;
     }
-    
+
     public void writeExternal(ObjectOutput out) throws IOException {
         // id should never be "", given that it's the only field here!
-        if( id == null ) { 
+        if( id == null ) {
             id = "";
         }
         out.writeUTF( id );
-    } 
-    
+    }
+
     public void readExternal(ObjectInput in) throws IOException,
                                             ClassNotFoundException {
         id = in.readUTF();
-    }      
-    
+    }
+
     public String getId() {
         return id;
     }
@@ -82,8 +84,8 @@ public abstract class OrganizationalEntityImpl implements InternalOrganizational
             if ( other.id != null ) return false;
         } else if ( !id.equals( other.id ) ) return false;
         return true;
-    }     
-    
+    }
+
     public String toString() {
         return "[" + getClass().getSimpleName() + ":'" + id + "']";
     }

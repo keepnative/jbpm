@@ -16,21 +16,22 @@
 
 package org.jbpm.services.task.impl.model;
 
+import org.kie.internal.task.api.model.EmailNotificationHeader;
+import org.kie.internal.task.api.model.Language;
+import org.kie.internal.task.api.model.NotificationType;
+
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToMany;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.OneToMany;
-
-import org.kie.internal.task.api.model.EmailNotificationHeader;
-import org.kie.internal.task.api.model.Language;
-import org.kie.internal.task.api.model.NotificationType;
 
 
 @Entity
@@ -39,6 +40,7 @@ public class EmailNotificationImpl extends NotificationImpl implements org.kie.i
 
     @OneToMany(cascade = CascadeType.ALL)
     @MapKeyColumn(name="mapkey")
+    @JoinTable(name = "SOUPE_WF_EMAIL_HEAD_LANG", joinColumns = @JoinColumn(name = "EMAIL_HEADER_ID"), inverseJoinColumns = @JoinColumn(name = "NOTIFICATION_ID"))
     private Map<LanguageImpl, EmailNotificationHeaderImpl> emailHeaders;
     
     @Override

@@ -16,52 +16,51 @@
 
 package org.jbpm.services.task.impl.model;
 
-import static org.jbpm.services.task.impl.model.TaskDataImpl.convertToUserImpl;
-
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.persistence.Embeddable;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.Group;
 import org.kie.api.task.model.OrganizationalEntity;
 import org.kie.api.task.model.User;
 import org.kie.internal.task.api.model.InternalPeopleAssignments;
 
+import javax.persistence.Embeddable;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.jbpm.services.task.impl.model.TaskDataImpl.convertToUserImpl;
+
 @Embeddable
 public class PeopleAssignmentsImpl implements InternalPeopleAssignments {
-	
+
     @ManyToOne()
+    @JoinColumn(name = "TASK_INITIATOR_BY")
     private UserImpl                       taskInitiator;
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "PeopleAssignments_PotOwners", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))
+    @JoinTable(name = "SOUPE_WF_POTENTIAL_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> potentialOwners        = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "PeopleAssignments_ExclOwners", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))
+    @JoinTable(name = "SOUPE_WF_EXCLUDED_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> excludedOwners         = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "PeopleAssignments_Stakeholders", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))
+    @JoinTable(name = "SOUPE_WF_TASK_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> taskStakeholders       = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "PeopleAssignments_BAs", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))
+    @JoinTable(name = "SOUPE_WF_BUSI_ADMIN", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> businessAdministrators = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "PeopleAssignments_Recipients", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"))
+    @JoinTable(name = "SOUPE_WF_RECIPIENT", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> recipients             = Collections.emptyList();
 
     public PeopleAssignmentsImpl() {
@@ -181,22 +180,22 @@ public class PeopleAssignmentsImpl implements InternalPeopleAssignments {
                                           other.taskStakeholders );
     }
 
-    static List<OrganizationalEntity> convertToPersistentOrganizationalEntity(List<OrganizationalEntity> orgEntList) { 
+    static List<OrganizationalEntity> convertToPersistentOrganizationalEntity(List<OrganizationalEntity> orgEntList) {
         List<OrganizationalEntity> persistentOrgEnts = orgEntList;
         if( persistentOrgEnts != null && ! persistentOrgEnts.isEmpty() ) {
             persistentOrgEnts = new ArrayList<OrganizationalEntity>(orgEntList.size());
-            for( OrganizationalEntity orgEnt : orgEntList ) { 
+            for( OrganizationalEntity orgEnt : orgEntList ) {
                 if( orgEnt instanceof UserImpl || orgEnt instanceof GroupImpl ) {
                     persistentOrgEnts.add(orgEnt);
-                } else if( orgEnt instanceof User ) { 
-                    persistentOrgEnts.add(new UserImpl(orgEnt.getId())); 
-                } else if( orgEnt instanceof Group ) { 
-                    persistentOrgEnts.add(new GroupImpl(orgEnt.getId())); 
-                } else { 
+                } else if( orgEnt instanceof User ) {
+                    persistentOrgEnts.add(new UserImpl(orgEnt.getId()));
+                } else if( orgEnt instanceof Group ) {
+                    persistentOrgEnts.add(new GroupImpl(orgEnt.getId()));
+                } else {
                     throw new IllegalStateException("Unknown user or group object: " + orgEnt.getClass().getName() );
                 }
             }
-        } 
+        }
         return persistentOrgEnts;
     }
 }

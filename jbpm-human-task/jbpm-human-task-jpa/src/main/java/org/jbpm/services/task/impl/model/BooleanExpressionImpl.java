@@ -16,30 +16,41 @@
 
 package org.jbpm.services.task.impl.model;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 @Entity
-@Table(name="BooleanExpression")
-@SequenceGenerator(name="booleanExprIdSeq", sequenceName="BOOLEANEXPR_ID_SEQ", allocationSize=1)
-public class BooleanExpressionImpl implements org.kie.internal.task.api.model.BooleanExpression {
-    
+@Table(name="SOUPE_WF_BOOLEAN_EXPR")
+public class BooleanExpressionImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.BooleanExpression {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="booleanExprIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_BOOLEAN_EXPR")
+            }
+    )
+    @Column(name = "ID")
     private Long   id;
+
+    @Column(name = "TYPE")
     private String type;
     
-    @Lob @Column(length=65535)
+    @Lob
+    @Column(name = "EXPRESSION", length=65535)
     private String expression;
     
     public BooleanExpressionImpl() {

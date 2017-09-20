@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm</artifactId>
-    <version>6.4.0.Final</version>
+    <version>6.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>jbpm-runtime-manager</artifactId>
@@ -16,9 +16,9 @@
     <maven.hibernate.dialect>org.hibernate.dialect.H2Dialect</maven.hibernate.dialect>
     <maven.datasource.classname>bitronix.tm.resource.jdbc.lrc.LrcXADataSource</maven.datasource.classname>
     <maven.jdbc.driver.class>org.h2.Driver</maven.jdbc.driver.class>
-    <maven.jdbc.db.name/>
-    <maven.jdbc.db.port/>
-    <maven.jdbc.db.server/> 
+    <maven.jdbc.db.name />
+    <maven.jdbc.db.port />
+    <maven.jdbc.db.server /> 
     <maven.jdbc.url>jdbc:h2:mem:jbpm-db;MVCC=true</maven.jdbc.url>
   </properties>
 
@@ -75,6 +75,15 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.keepnative.soupe</groupId>
+      <artifactId>soupe-model</artifactId>
+      <version>3.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
     </dependency>
 
 
@@ -145,11 +154,6 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -279,9 +283,11 @@
               org.mvel2,
               org.slf4j,
               org.eclipse.aether.artifact;resolution:=optional,
-              org.xml.sax
+              org.xml.sax,
+              com.bmit.platform.soupe.data.core.model,
+              org.hibernate.annotations
             </Import-Package>
-            <Private-Package></Private-Package>
+            <Private-Package />
             <Export-Package>
               org.jbpm.runtime.manager.api*,
               org.jbpm.runtime.manager.impl*

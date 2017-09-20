@@ -19,33 +19,42 @@
  */
 package org.jbpm.services.task.impl.model;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import javax.persistence.Column;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
 
 /**
  *
  */
 @Entity
-@Table(name="TaskDef")
-@SequenceGenerator(name="taskDefIdSeq", sequenceName="TASK_DEF_ID_SEQ")
-public class TaskDefImpl implements org.kie.internal.task.api.model.TaskDef {
-    
+@Table(name="SOUPE_WF_TASK_DEFINITION")
+public class TaskDefImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.TaskDef {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="taskDefIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK_DEFINITION")
+            }
+    )
+    @Column(name = "ID")
     private long id;
-    
+
+    @Column(name = "NAME")
     private String name;
-    
+
+    @Column(name = "PRIORITY")
     private int priority;
 
 

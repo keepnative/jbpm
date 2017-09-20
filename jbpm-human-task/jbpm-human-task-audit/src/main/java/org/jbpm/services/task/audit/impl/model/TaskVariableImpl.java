@@ -16,55 +16,60 @@
 
 package org.jbpm.services.task.audit.impl.model;
 
-import java.io.Serializable;
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
-
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
 import org.kie.internal.task.api.TaskVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
+
 @Entity
-@SequenceGenerator(name = "taskVarIdSeq", sequenceName = "TASK_VAR_ID_SEQ", allocationSize = 1)
-public class TaskVariableImpl implements TaskVariable, Serializable {
+@Table(name = "SOUPE_WF_TASK_VARIABLE")
+public class TaskVariableImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskVariable, Serializable {
 
     private static final long serialVersionUID = 5388016330549830048L;
     private static final Logger logger = LoggerFactory.getLogger(TaskVariableImpl.class);
-    
+
     @Transient
     private final int VARIABLE_LOG_LENGTH = Integer.parseInt(System.getProperty("org.jbpm.task.var.log.length", "4000"));
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "taskVarIdSeq")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @org.hibernate.annotations.Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK_VARIABLE")
+            }
+    )
+    @Column(name = "ID")
     private Long id;
 
+    @Column(name = "TASK_ID")
     private Long taskId;
 
+    @Column(name = "PROCESS_INSTANCE_ID")
     private Long processInstanceId;
 
+    @Column(name = "PROCESS_ID")
     private String processId;
 
+    @Column(name = "NAME")
     private String name;
 
-    @Column(length=4000)
+    @Column(name = "VALUE", length = 4000)
     private String value;
 
     @Enumerated(EnumType.ORDINAL)
+    @Column(name = "TYPE")
     private VariableType type;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "MODIFICATION_DATE")
     private Date modificationDate;
 
     public Long getId() {

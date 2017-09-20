@@ -19,15 +19,30 @@
  */
 package org.jbpm.services.task.impl.model;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 
 @Entity
-public class PresentationElement {
+@Table(name = "SOUPE_WF_PRESENT_ELEMENT")
+public class PresentationElement extends AbstractBaseEntityWithDomainNoAuditing {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_PRESENT_ELEMENT")
+            }
+    )
+    @Column(name = "ID")
     private Long id;
 }

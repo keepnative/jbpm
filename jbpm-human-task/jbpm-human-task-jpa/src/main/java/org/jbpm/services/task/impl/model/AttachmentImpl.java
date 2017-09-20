@@ -16,59 +16,73 @@
 
 package org.jbpm.services.task.impl.model;
 
-import static org.jbpm.services.task.impl.model.TaskDataImpl.*;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.kie.api.task.model.Content;
 import org.kie.api.task.model.User;
 import org.kie.internal.task.api.model.AccessType;
 import org.kie.internal.task.api.model.InternalAttachment;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Date;
+
+import static org.jbpm.services.task.impl.model.TaskDataImpl.convertToUserImpl;
+
 @Entity
-@Table(name="Attachment")
-@SequenceGenerator(name="attachmentIdSeq", sequenceName="ATTACHMENT_ID_SEQ", allocationSize=1)
-public class AttachmentImpl implements InternalAttachment {
-    
+@Table(name="SOUPE_WF_ATTACHMENT")
+public class AttachmentImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalAttachment {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="attachmentIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "sequenceStyleGenerator")
+    @GenericGenerator(
+            name = "sequenceStyleGenerator",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_ATTACHMENT")
+            }
+    )
+    @Column(name = "ID")
     private Long   id = 0L;
 
     /**
      * Several attachments may have the same name
      */
+    @Column(name = "NAME")
     private String name;
 
     /**
      * current "inline" and "URL" are allowed, this is extendable though and others may be added
      */
+    @Column(name = "ACCESS_TYPE")
     private AccessType accessType = AccessType.Unknown;
 
     /**
      * MIME type
      */
+    @Column(name = "CONTENT_TYPE")
     private String contentType;
 
     @ManyToOne()
+    @JoinColumn(name = "ATTACHED_BY")
     private UserImpl   attachedBy;
-    
+
+    @Column(name = "ATTACHED_AT")
     private Date   attachedAt;    
 
-    @Column(name = "attachment_size")
+    @Column(name = "ATTACHMENT_SIZE")
     private int    size;    
-    
+
+    @Column(name = "ATTACHMENT_CONTENT_ID")
     private long   attachmentContentId;
     
     public void writeExternal(ObjectOutput out) throws IOException {

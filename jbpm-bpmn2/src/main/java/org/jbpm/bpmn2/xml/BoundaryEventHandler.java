@@ -515,6 +515,7 @@ public class BoundaryEventHandler extends AbstractNodeHandler {
                 String date = (String) eventNode.getMetaData("TimeDate");
                 
                 
+                
                 if (duration != null && cycle != null) {
                 	String lang = (String) eventNode.getMetaData("Language");
                 	String language = "";
