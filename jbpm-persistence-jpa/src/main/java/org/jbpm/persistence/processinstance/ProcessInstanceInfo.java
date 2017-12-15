@@ -15,7 +15,7 @@
 
 package org.jbpm.persistence.processinstance;
 
-import com.bmit.platform.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.drools.core.common.InternalKnowledgeRuntime;
 import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.impl.StatefulKnowledgeSessionImpl;

@@ -16,7 +16,7 @@
 
 package org.jbpm.services.task.impl.model;
 
-import com.bmit.platform.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.model.InternalContent;

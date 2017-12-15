@@ -15,7 +15,7 @@
  */
 package org.jbpm.runtime.manager.impl.jpa;
 
-import com.bmit.platform.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 

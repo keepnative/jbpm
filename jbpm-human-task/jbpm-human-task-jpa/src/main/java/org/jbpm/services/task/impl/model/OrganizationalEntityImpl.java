@@ -16,7 +16,7 @@
 
 package org.jbpm.services.task.impl.model;
 
-import com.bmit.platform.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.kie.internal.task.api.model.InternalOrganizationalEntity;
 
 import javax.persistence.Column;
