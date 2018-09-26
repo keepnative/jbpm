@@ -20,6 +20,10 @@
  */
 package org.jbpm.services.task.impl.model;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -36,17 +40,25 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(name="TaskDef")
-@SequenceGenerator(name="taskDefIdSeq", sequenceName="TASK_DEF_ID_SEQ")
-public class TaskDefImpl implements org.kie.internal.task.api.model.TaskDef {
+@Table(name="SOUPE_WF_TASK_DEFINITION")
+public class TaskDefImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.TaskDef {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="taskDefIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "S_SOUPE_WF_TASK_DEFINITION")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_TASK_DEFINITION",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK_DEFINITION")
+            }
+    )
+    @Column(name = "ID")
     private long id;
-    
+
+    @Column(name = "NAME")
     private String name;
-    
+
+    @Column(name = "PRIORITY")
     private int priority;
 
 

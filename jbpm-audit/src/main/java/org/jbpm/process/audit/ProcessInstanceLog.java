@@ -30,67 +30,70 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.process.audit.event.AuditEvent;
 import org.jbpm.process.audit.event.AuditEventBuilder;
 import org.kie.api.runtime.KieRuntime;
 
 @Entity
-@Table(name = "ProcessInstanceLog", indexes = {@Index(name = "IDX_PInstLog_duration", columnList = "duration"),
-                                        @Index(name = "IDX_PInstLog_end_date", columnList = "end_date"),
-                                        @Index(name = "IDX_PInstLog_extId", columnList = "externalId"),
-                                        @Index(name = "IDX_PInstLog_user_identity", columnList = "user_identity"),
-                                        @Index(name = "IDX_PInstLog_outcome", columnList = "outcome"),
-                                        @Index(name = "IDX_PInstLog_parentPInstId", columnList = "parentProcessInstanceId"),
-                                        @Index(name = "IDX_PInstLog_pId", columnList = "processId"),
-                                        @Index(name = "IDX_PInstLog_pInsteDescr", columnList = "processInstanceDescription"),
-                                        @Index(name = "IDX_PInstLog_pInstId", columnList = "processInstanceId"),
-                                        @Index(name = "IDX_PInstLog_pName", columnList = "processName"),
-                                        @Index(name = "IDX_PInstLog_pVersion", columnList = "processVersion"),
-                                        @Index(name = "IDX_PInstLog_start_date", columnList = "start_date"),
-                                        @Index(name = "IDX_PInstLog_status", columnList = "status"),
-                                        @Index(name = "IDX_PInstLog_correlation", columnList = "correlationKey")})
-@SequenceGenerator(name="processInstanceLogIdSeq", sequenceName="PROC_INST_LOG_ID_SEQ", allocationSize=1)
-public class ProcessInstanceLog implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.ProcessInstanceLog {
+@Table(name="SOUPE_WF_PROC_INST_LOG")
+public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.ProcessInstanceLog {
     
 	private static final long serialVersionUID = 510l;
-	
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="processInstanceLogIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_PROC_INST_LOG")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_PROC_INST_LOG",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_PROC_INST_LOG")
+            }
+    )
+    @Column(name = "ID")
 	private long id;
-	
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
-    
+
+    @Column(name = "PROCESS_ID")
     private String processId;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "start_date")
+    @Column(name = "START_DATE")
     private Date start;
-    
+
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "end_date")
+    @Column(name = "END_DATE")
     private Date end;
     
-    @Column(nullable=true)
+    @Column(name = "STATUS")
     private Integer status;
-    
-    @Column(nullable=true)
+
+    @Column(name = "PARENT_PROCESS_INSTANCE_ID")
     private Long parentProcessInstanceId;
-    
-    @Column(nullable=true)
-    private String outcome;    
-    
+
+    @Column(name = "OUTCOME")
+    private String outcome;
+
+    @Column(name = "DURATION")
     private Long duration;
-    
-    @Column(name="user_identity")
-    private String identity;    
-    
+
+    @Column(name="IDENTIFIER")
+    private String identity;
+
+    @Column(name = "PROCESS_VERSION")
     private String processVersion;
-    
+
+    @Column(name = "PROCESS_NAME")
     private String processName;
-    
+
+    @Column(name = "CORRELATION_KEY")
     private String correlationKey;
     
-    @Column(nullable=true)
+    @Column(name = "PROCESS_TYPE")
     private Integer processType;
       
     /**
@@ -100,15 +103,17 @@ public class ProcessInstanceLog implements Serializable, AuditEvent, org.kie.api
      * <li>The deployment unit Id</li>
      * 
      */
+    @Column(name = "EXTERNAL_ID")
     private String externalId;
-    
+
+    @Column(name = "PROCESS_INSTANCE_DESC")
     private String processInstanceDescription;
         
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "sla_due_date")
+    @Column(name = "SLA_DUE_DATE")
     private Date slaDueDate;
     
-    @Column(nullable=true)
+    @Column(name = "SLA_COMPLIANCE")
     private Integer slaCompliance;
     
     public ProcessInstanceLog() {

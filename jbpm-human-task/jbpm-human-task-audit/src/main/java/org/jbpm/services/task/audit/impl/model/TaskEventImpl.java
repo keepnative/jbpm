@@ -39,39 +39,55 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.Version;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.model.TaskEvent;
 
 /**
  *
  */
 @Entity
-@Table(name = "TaskEvent")
-@SequenceGenerator(name = "taskEventIdSeq", sequenceName = "TASK_EVENT_ID_SEQ")
-public class TaskEventImpl implements TaskEvent, Externalizable {
+@Table(name="SOUPE_WF_TASK_EVENT")
+public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskEvent, Externalizable {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO, generator = "taskEventIdSeq")
-  @Column(name = "id")
+  @GeneratedValue(generator = "S_SOUPE_WF_TASK_EVENT")
+  @GenericGenerator(
+          name = "S_SOUPE_WF_TASK_EVENT",
+          strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+          parameters = {
+                  @Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK_EVENT")
+          }
+  )
+  @Column(name = "ID")
   private Long id;
 
   @Version
-  @Column(name = "OPTLOCK")
+  @Column(name = "VERSION")
   private Integer version;
 
+  @Column(name = "TASK_ID")
   private Long taskId;
 
+  @Column(name = "WORK_ITEM_ID")
   private Long workItemId;
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "TYPE")
   private TaskEventType type;
 
+  @Column(name = "PROCESS_INSTANCE_ID")
   private Long processInstanceId;
 
+  @Column(name = "USER_ID")
   private String userId;
 
+  @Column(name = "MESSAGE")
   private String message;
 
   @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+  @Column(name = "LOG_TIME")
   private Date logTime;
 
   public TaskEventImpl() {

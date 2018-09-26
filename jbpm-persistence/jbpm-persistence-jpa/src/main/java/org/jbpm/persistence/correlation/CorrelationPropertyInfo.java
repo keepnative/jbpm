@@ -23,17 +23,20 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.kie.internal.process.CorrelationProperty;
 
 @Entity
-@Table(name = "CorrelationPropertyInfo", indexes = {@Index(name = "IDX_CorrPropInfo_Id", columnList = "correlationKey_keyId")})
-@SequenceGenerator(name="correlationPropertyInfoIdSeq", sequenceName="CORRELATION_PROP_ID_SEQ")
-public class CorrelationPropertyInfo implements CorrelationProperty<String>, Serializable {
+@Table(name = "SOUPE_WF_CORRELATION_PROP")
+public class CorrelationPropertyInfo extends AbstractBaseEntityWithDomainNoAuditing implements CorrelationProperty<String>, Serializable {
 
 	private static final long serialVersionUID = -4469224502447675428L;
 
@@ -47,18 +50,29 @@ public class CorrelationPropertyInfo implements CorrelationProperty<String>, Ser
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="correlationPropertyInfoIdSeq")
-    @Column(name = "propertyId")
+    @GeneratedValue(generator = "S_SOUPE_WF_CORRELATION_PROP")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_CORRELATION_PROP",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CORRELATION_PROP")
+            }
+    )
+    @Column(name = "ID")
     private long id;
     
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int version;
     
     @ManyToOne
+    @JoinColumn(name = "CORRELATION_KEY_ID")
     private CorrelationKeyInfo correlationKey;
-    
+
+    @Column(name = "NAME")
     private String name;
+
+    @Column(name = "VALUE")
     private String value;
     
     @Override

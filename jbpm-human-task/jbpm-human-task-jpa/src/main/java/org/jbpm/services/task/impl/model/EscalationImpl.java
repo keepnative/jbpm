@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -33,33 +34,43 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.internal.task.api.model.BooleanExpression;
 import org.kie.internal.task.api.model.Notification;
 import org.kie.internal.task.api.model.Reassignment;
 
 @Entity
-@Table(name="Escalation",
-       indexes = {@Index(name = "IDX_Escalation_Id",  columnList="Deadline_Escalation_Id")})
-@SequenceGenerator(name="escalationIdSeq", sequenceName="ESCALATION_ID_SEQ", allocationSize=1)
-public class EscalationImpl implements org.kie.internal.task.api.model.Escalation {
+@Table(name="SOUPE_WF_ESCALATION")
+public class EscalationImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Escalation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="escalationIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_ESCALATION")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_ESCALATION",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_ESCALATION")
+            }
+    )
+    @Column(name = "ID")
     private Long                    id;
 
+    @Column(name = "NAME")
     private String                  name;
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=BooleanExpressionImpl.class)
-    @JoinColumn(name = "Escalation_Constraints_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_CONSTRAINT_ID", nullable = true)
     private List<BooleanExpression> constraints   = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=NotificationImpl.class)
-    @JoinColumn(name = "Escalation_Notifications_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_NOTIFICATION_ID", nullable = true)
     private List<Notification>      notifications = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=ReassignmentImpl.class)
-    @JoinColumn(name = "Escalation_Reassignments_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_REASSIGNMENT_ID", nullable = true)
     private List<Reassignment>      reassignments = Collections.emptyList();
     
     public void writeExternal(ObjectOutput out) throws IOException {

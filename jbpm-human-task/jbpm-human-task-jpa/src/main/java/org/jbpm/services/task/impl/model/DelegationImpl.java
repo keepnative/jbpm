@@ -22,6 +22,7 @@ import java.io.ObjectOutput;
 import java.util.Collections;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -36,13 +37,12 @@ import org.kie.internal.task.api.model.AllowedToDelegate;
 
 @Embeddable
 public class DelegationImpl  implements org.kie.internal.task.api.model.Delegation {
-    @Enumerated(EnumType.STRING)      
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ALLOWED_TO_DELEGATE")
     private AllowedToDelegate                    allowedToDelegate;
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "Delegation_delegates", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"),
-       indexes = {@Index(name = "IDX_Delegation_EntityId",  columnList="entity_id"),
-                  @Index(name = "IDX_Delegation_TaskId", columnList="task_id")})
+    @JoinTable(name = "SOUPE_WF_DELEGATION_DLGT", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> delegates = Collections.emptyList();
     
     public void writeExternal(ObjectOutput out) throws IOException {

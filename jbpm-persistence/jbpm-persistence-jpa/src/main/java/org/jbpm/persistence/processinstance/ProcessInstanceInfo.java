@@ -37,9 +37,11 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.drools.core.common.InternalKnowledgeRuntime;
 import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.impl.StatefulKnowledgeSessionImpl;
@@ -49,6 +51,8 @@ import org.drools.core.marshalling.impl.PersisterHelper;
 import org.drools.core.marshalling.impl.ProcessMarshallerWriteContext;
 import org.drools.core.marshalling.impl.ProtobufMarshaller;
 import org.drools.persistence.api.Transformable;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.marshalling.impl.JBPMMessages;
 import org.jbpm.marshalling.impl.ProcessInstanceMarshaller;
 import org.jbpm.marshalling.impl.ProcessMarshallerRegistry;
@@ -60,34 +64,43 @@ import org.kie.api.runtime.Environment;
 import org.kie.api.runtime.process.ProcessInstance;
 
 @Entity
-@SequenceGenerator(name="processInstanceInfoIdSeq", sequenceName="PROCESS_INSTANCE_INFO_ID_SEQ")
-public class ProcessInstanceInfo implements PersistentProcessInstance {
+@Table(name = "SOUPE_WF_PROC_INST")
+public class ProcessInstanceInfo extends AbstractBaseEntityWithDomainNoAuditing implements PersistentProcessInstance {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="processInstanceInfoIdSeq")
-    @Column(name = "InstanceId")
+    @GeneratedValue(generator = "S_SOUPE_WF_PROC_INST")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_PROC_INST",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_PROC_INST")
+            }
+    )
+    @Column(name = "ID")
     private Long                              processInstanceId;
 
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int                               version;
 
+    @Column(name = "PROCESS_ID")
     private String                            processId;
+    @Column(name = "START_DATE")
     private Date                              startDate;
+    @Column(name = "LAST_READ_DATE")
     private Date                              lastReadDate;
+    @Column(name = "LAST_MODIFICATION_DATE")
     private Date                              lastModificationDate;
+    @Column(name = "STATE")
     private int                               state;
     
     @Lob
-    @Column(length=2147483647)
+    @Column(name = "PROCESS_INSTANCE_BYTE_ARRAY", length=2147483647)
     byte[]                                    processInstanceByteArray;
 
     @ElementCollection
-    @CollectionTable(name="EventTypes", joinColumns=@JoinColumn(name="InstanceId"),
-       indexes = {@Index(name = "IDX_EventTypes_Id",  columnList="InstanceId"),
-                  @Index(name = "IDX_EventTypes_element", columnList="element")})
-
-    @Column(name="element")
+    @CollectionTable(name="SOUPE_WF_EVENT_TYPE", joinColumns=@JoinColumn(name="PROCESS_INSTANCE_ID"))
+    @Column(name="ELEMENT")
     private Set<String>                       eventTypes         = new HashSet<String>();
     
     @Transient

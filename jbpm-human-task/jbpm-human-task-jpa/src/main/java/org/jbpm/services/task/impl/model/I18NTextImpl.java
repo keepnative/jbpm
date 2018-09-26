@@ -31,32 +31,35 @@ import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.model.InternalI18NText;
 
 @Entity
-@Table(name="I18NText",
-       indexes = {@Index(name = "IDX_I18NText_SubjId",  columnList="Task_Subjects_Id"),
-                  @Index(name = "IDX_I18NText_NameId",  columnList="Task_Names_Id"),
-                  @Index(name = "IDX_I18NText_DescrId",  columnList="Task_Descriptions_Id"),
-                  @Index(name = "IDX_I18NText_ReassignId",  columnList="Reassignment_Documentation_Id"),
-                  @Index(name = "IDX_I18NText_NotSubjId",  columnList="Notification_Subjects_Id"),
-                  @Index(name = "IDX_I18NText_NotNamId",  columnList="Notification_Names_Id"),
-                  @Index(name = "IDX_I18NText_NotDocId",  columnList="Notification_Documentation_Id"),
-                  @Index(name = "IDX_I18NText_NotDescrId",  columnList="Notification_Descriptions_Id"),
-                  @Index(name = "IDX_I18NText_DeadDocId", columnList="Deadline_Documentation_Id")})
-@SequenceGenerator(name="i18nTextIdSeq", sequenceName="I18NTEXT_ID_SEQ", allocationSize=1)
-public class I18NTextImpl implements InternalI18NText {
+@Table(name="SOUPE_WF_I18N_TEXT")
+public class I18NTextImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalI18NText {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="i18nTextIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "S_SOUPE_WF_I18N_TEXT")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_I18N_TEXT",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_I18N_TEXT")
+            }
+    )
+    @Column(name = "ID")
     private Long   id = null;
 
+    @Column(name = "LANGUAGE")
     private String language;
 
+    @Column(name = "SHORT_TEXT")
     private String shortText;
 
-    @Lob @Column(length=65535)
+    @Lob
+    @Column(name = "TEXT", length=65535)
     private String text;
 
     public I18NTextImpl() {

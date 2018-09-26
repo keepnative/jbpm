@@ -30,19 +30,29 @@ import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.model.InternalContent;
 
 @Entity
-@Table(name="Content")
-@SequenceGenerator(name="contentIdSeq", sequenceName="CONTENT_ID_SEQ", allocationSize=1)
-public class ContentImpl implements InternalContent {
+@Table(name="SOUPE_WF_CONTENT")
+public class ContentImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalContent {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="contentIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_CONTENT")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_CONTENT",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTENT")
+            }
+    )
+    @Column(name = "ID")
     private Long   id = 0L;;
     
     @Lob
-    @Column(length=2147483647)
+    @Column(name = "CONTENT", length=2147483647)
     private byte[] content;
     
     public ContentImpl() {

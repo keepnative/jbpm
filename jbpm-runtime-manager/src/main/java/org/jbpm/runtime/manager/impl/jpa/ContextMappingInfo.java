@@ -15,6 +15,10 @@
  */
 package org.jbpm.runtime.manager.impl.jpa;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
 import java.io.Serializable;
 
 import javax.persistence.Column;
@@ -39,10 +43,7 @@ import javax.persistence.Version;
  * This entity must be included in the persistence.xml when the "Per Process Instance" strategy is used.
  */
 @Entity
-@Table(name = "ContextMappingInfo", indexes = {@Index(name = "IDX_CMI_Context", columnList = "CONTEXT_ID"),
-                                        @Index(name = "IDX_CMI_KSession", columnList = "KSESSION_ID"),
-                                        @Index(name = "IDX_CMI_Owner", columnList = "OWNER_ID")})
-@SequenceGenerator(name="contextMappingInfoIdSeq", sequenceName="CONTEXT_MAPPING_INFO_ID_SEQ")
+@Table(name = "SOUPE_WF_CONTEXT_MAPPING")
 @NamedQueries(value=
     {@NamedQuery(name="FindContextMapingByContextId", 
                 query="from ContextMappingInfo where contextId = :contextId"
@@ -60,16 +61,24 @@ import javax.persistence.Version;
                         + "ProcessInstanceInfo processInstanceInfo join processInstanceInfo.eventTypes eventTypes"
                         + " where eventTypes = :eventType and cmInfo.contextId = cast(processInstanceInfo.processInstanceId as string)"
                         + " and cmInfo.ownerId = :ownerId")})
-public class ContextMappingInfo implements Serializable {
+public class ContextMappingInfo extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
 
     private static final long serialVersionUID = 533985957655465840L;
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="contextMappingInfoIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_CONTEXT_MAPPING")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_CONTEXT_MAPPING",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTEXT_MAPPING")
+            }
+    )
+    @Column(name = "ID")
     private Long mappingId;
 
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int version;
     
     @Column(name="CONTEXT_ID", nullable=false)

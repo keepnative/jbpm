@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -35,28 +36,35 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.I18NText;
 import org.kie.api.task.model.OrganizationalEntity;
 
 @Entity
-@Table(name="Reassignment",
-       indexes = {@Index(name = "IDX_Reassign_Esc",  columnList="Escalation_Reassignments_Id")})
-@SequenceGenerator(name="reassignmentIdSeq", sequenceName="REASSIGNMENT_ID_SEQ", allocationSize=1)
-public class ReassignmentImpl implements org.kie.internal.task.api.model.Reassignment {
+@Table(name="SOUPE_WF_REASSIGNMENT")
+public class ReassignmentImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Reassignment {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="reassignmentIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_REASSIGNMENT")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_REASSIGNMENT",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_REASSIGNMENT")
+            }
+    )
+    @Column(name = "ID")
     private Long                       id;
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Reassignment_Documentation_Id", nullable = true)     
+    @JoinColumn(name = "REASSIGNMENT_DOCUMENTATION_ID", nullable = true)
     private List<I18NText>             documentation = Collections.emptyList();
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "Reassignment_potentialOwners", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"),
-       indexes = {@Index(name = "IDX_ReassignPO_Entity",  columnList="entity_id"),
-                  @Index(name = "IDX_ReassignPO_Task", columnList="task_id")})
+    @JoinTable(name = "SOUPE_WF_RASIN_OWNER", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity> potentialOwners = Collections.emptyList();
 
     public void writeExternal(ObjectOutput out) throws IOException {

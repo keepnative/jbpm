@@ -31,45 +31,58 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.process.audit.event.AuditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Entity
-@Table(name = "VariableInstanceLog", indexes = {@Index(name = "IDX_VInstLog_pInstId", columnList = "processInstanceId"),
-                                               @Index(name = "IDX_VInstLog_varId", columnList = "variableId"),
-                                               @Index(name = "IDX_VInstLog_pId", columnList = "processId")})
-@SequenceGenerator(name="variableInstanceLogIdSeq", sequenceName="VAR_INST_LOG_ID_SEQ", allocationSize=1)
-public class VariableInstanceLog implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.VariableInstanceLog {
+@Table(name="SOUPE_WF_VAR_INST_LOG")
+public class VariableInstanceLog extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.VariableInstanceLog {
     
 	private static final Logger logger = LoggerFactory.getLogger(VariableInstanceLog.class);
 	
 	private static final long serialVersionUID = 510l;
 	@Transient
 	private final int VARIABLE_LOG_LENGTH = Integer.parseInt(System.getProperty("org.jbpm.var.log.length", "255"));
+    private static final int SOUPE_WF_VARIABLE_LOG_LENGTH = 2000;
 
 	// entity fields
 	
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="variableInstanceLogIdSeq")
+	@GeneratedValue(generator = "S_SOUPE_WF_VAR_INST_LOG")
+	@GenericGenerator(
+			name = "S_SOUPE_WF_VAR_INST_LOG",
+			strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+			parameters = {
+					@Parameter(name = "sequence_name", value = "S_SOUPE_WF_VAR_INST_LOG")
+			}
+	)
+	@Column(name = "ID")
 	private long id;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
-    
+
+    @Column(name = "PROCESS_ID")
     private String processId;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "log_date")
+    @Column(name = "LOG_DATE")
     private Date date;
-    
+
+    @Column(name = "VARIABLE_INSTANCE_ID")
     private String variableInstanceId;
-    
+    @Column(name = "VARIABLE_ID")
     private String variableId;
-    
+    @Column(name = "VALUE", length = SOUPE_WF_VARIABLE_LOG_LENGTH)
     private String value;
-    
+    @Column(name = "OLD_VALUE", length = SOUPE_WF_VARIABLE_LOG_LENGTH)
     private String oldValue;
-    
+
+    @Column(name = "EXTERNAL_ID")
     private String externalId;
     
 	// constructors
@@ -164,8 +177,8 @@ public class VariableInstanceLog implements Serializable, AuditEvent, org.kie.ap
         return externalId;
     }
 
-    public void setExternalId(String domainId) {
-        this.externalId = domainId;
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     public String toString() {

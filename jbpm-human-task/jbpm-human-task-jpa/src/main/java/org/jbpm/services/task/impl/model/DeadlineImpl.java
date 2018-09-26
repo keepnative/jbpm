@@ -35,30 +35,41 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.I18NText;
 import org.kie.internal.task.api.model.Escalation;
 
 @Entity
-@Table(name="Deadline",
-       indexes = {@Index(name = "IDX_Deadline_StartId",  columnList="Deadlines_StartDeadLine_Id"),
-                  @Index(name = "IDX_Deadline_EndId", columnList="Deadlines_EndDeadLine_Id")})
-@SequenceGenerator(name="deadlineIdSeq", sequenceName="DEADLINE_ID_SEQ", allocationSize=1)
-public class DeadlineImpl implements org.kie.internal.task.api.model.Deadline {
+@Table(name="SOUPE_WF_DEADLINE")
+public class DeadlineImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Deadline {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="deadlineIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_CONTENT")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_CONTENT",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTENT")
+            }
+    )
+    @Column(name = "ID")
     private Long id;
+
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Deadline_Documentation_Id", nullable = true)
+    @JoinColumn(name = "DEADLINE_DOCUMENTATION_ID")
     private List<I18NText> documentation = Collections.emptyList();
-    @Column(name = "deadline_date")
+
+    @Column(name = "DEADLINE_DATE")
     private Date date;
     @OneToMany(cascade = CascadeType.ALL, targetEntity=EscalationImpl.class)
-    @JoinColumn(name = "Deadline_Escalation_Id", nullable = true)
+    @JoinColumn(name = "ESCALATION_ID")
     private List<Escalation> escalations = Collections.emptyList();
     
     @Basic
+    @Column(name = "ESCALATED")
     private Short escalated = 0;
 
     public Boolean isEscalated() {

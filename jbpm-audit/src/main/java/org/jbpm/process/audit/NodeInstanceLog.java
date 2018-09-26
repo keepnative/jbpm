@@ -30,47 +30,75 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.process.audit.event.AuditEvent;
 
 @Entity
-@Table(name = "NodeInstanceLog", indexes = {@Index(name = "IDX_NInstLog_pInstId", columnList = "processInstanceId"),
-                                        @Index(name = "IDX_NInstLog_nodeType", columnList = "nodeType"),
-                                        @Index(name = "IDX_NInstLog_pId", columnList = "processId")})
-@SequenceGenerator(name="nodeInstanceLogIdSeq", sequenceName="NODE_INST_LOG_ID_SEQ", allocationSize=1)
-public class NodeInstanceLog implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.NodeInstanceLog {
+@Table(name="SOUPE_WF_NODE_INST_LOG")
+public class NodeInstanceLog extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.NodeInstanceLog {
    
 	
 	private static final long serialVersionUID = 510l;
 	
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="nodeInstanceLogIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_NODE_INST_LOG")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_NODE_INST_LOG",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_NODE_INST_LOG")
+            }
+    )
+    @Column(name = "ID")
 	private long id;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
+
+    @Column(name = "PROCESS_ID")
     private String processId;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "log_date")
+    @Column(name = "OCCURRENCE_DATE")
     private Date date;
-    
+
+    @Column(name = "TYPE")
     private int type;
+
+    @Column(name = "NODE_INSTANCE_ID")
     private String nodeInstanceId;
+
+    @Column(name = "NODE_ID")
     private String nodeId;
+
+    @Column(name = "NODE_NAME")
     private String nodeName;
+
+    @Column(name = "NODE_TYPE")
     private String nodeType;
-    private Long workItemId;    
+
+    @Column(name = "WORK_ITEM_ID")
+    private Long workItemId;
+
+    @Column(name = "CONNECTION")
     private String connection;
-    
+
+    @Column(name = "EXTERNAL_ID")
     private String externalId;
-    
-    private Long referenceId;    
+
+    @Column(name = "REFERENCE_ID")
+    private Long referenceId;
+
+    @Column(name = "NODE_CONTAINER_ID")
     private String nodeContainerId;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "sla_due_date")
+    @Column(name = "SLA_DUE_DATE")
     private Date slaDueDate;
     
-    @Column(nullable=true)
+    @Column(name = "SLA_COMPLIANCE")
     private Integer slaCompliance;
     
     public NodeInstanceLog() {
@@ -279,8 +307,8 @@ public class NodeInstanceLog implements Serializable, AuditEvent, org.kie.api.ru
         return externalId;
     }
 
-    public void setExternalId(String domainId) {
-        this.externalId = domainId;
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     public String getNodeType() {

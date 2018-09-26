@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm-in-container-test</artifactId>
-    <version>7.11.0.Final</version>
+    <version>7.11.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>jbpm-container-test-suite</artifactId>
@@ -43,27 +43,27 @@
       <dependency>
         <groupId>org.jbpm</groupId>
         <artifactId>idep-jbpm-ejb-services</artifactId>
-        <version>${version.org.kie}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jbpm</groupId>
         <artifactId>idep-hibernate-entitymanager</artifactId>
-        <version>${version.org.kie}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jbpm</groupId>
         <artifactId>idep-jbpm</artifactId>
-        <version>${version.org.kie}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jbpm</groupId>
         <artifactId>idep-jbpm-persistence</artifactId>
-        <version>${version.org.kie}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jbpm</groupId>
         <artifactId>idep-rest</artifactId>
-        <version>${version.org.kie}</version>
+        <version>${project.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

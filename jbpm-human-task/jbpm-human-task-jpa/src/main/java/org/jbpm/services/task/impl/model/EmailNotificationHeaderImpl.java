@@ -19,6 +19,10 @@
  */
 package org.jbpm.services.task.impl.model;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -33,25 +37,35 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "email_header")
-@SequenceGenerator(name="emailNotificationHeadIdSeq", sequenceName="EMAILNOTIFHEAD_ID_SEQ", allocationSize=1)
-public class EmailNotificationHeaderImpl implements org.kie.internal.task.api.model.EmailNotificationHeader {
+@Table(name = "SOUPE_WF_EMAIL_HEAD")
+public class EmailNotificationHeaderImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.EmailNotificationHeader {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="emailNotificationHeadIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_EMAIL_HEAD")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_EMAIL_HEAD",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_EMAIL_HEAD")
+            }
+    )
+    @Column(name = "ID")
     private Long   id;
-    
+
+    @Column(name = "LANGUAGE")
     private String language;    
     
-    @Column( name = "replyToAddress" ) // just rename for consistency
+    @Column( name = "REPLY_TO_ADDRESS" ) // just rename for consistency
     private String replyTo;
         
-    @Column( name = "fromAddress" ) // have to rename as schema's break otherwise
+    @Column( name = "FROM_ADDRESS" ) // have to rename as schema's break otherwise
     private String from;
-    
+
+    @Column(name = "SUBJECT")
     private String subject;
     
-    @Lob @Column(length=65535)
+    @Lob
+    @Column(name = "BODY", length=65535)
     private String body;
     
     public void writeExternal(ObjectOutput out) throws IOException {

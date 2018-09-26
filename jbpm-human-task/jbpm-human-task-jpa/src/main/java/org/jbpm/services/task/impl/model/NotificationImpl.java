@@ -36,50 +36,55 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.I18NText;
 import org.kie.api.task.model.OrganizationalEntity;
 import org.kie.internal.task.api.model.NotificationType;
 
 @Entity
-@Table(name="Notification",
-       indexes = {@Index(name = "IDX_Not_EscId",  columnList="Escalation_Notifications_Id")})
-@SequenceGenerator(name="notificationIdSeq", sequenceName="NOTIFICATION_ID_SEQ", allocationSize=1)
-public class NotificationImpl implements org.kie.internal.task.api.model.Notification  {
+@Table(name="SOUPE_WF_NOTIFICATION")
+public class NotificationImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Notification  {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="notificationIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "S_SOUPE_WF_NOTIFICATION")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_NOTIFICATION",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_NOTIFICATION")
+            }
+    )
+    @Column(name = "ID")
     private Long                             id;
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Notification_Documentation_Id", nullable = true)
+    @JoinColumn(name = "NOTIFICATION_DOCUMENTATION_ID", nullable = true)
     private List<I18NText>                   documentation = Collections.emptyList();
 
+    @Column(name = "PRIORITY")
     private int                              priority;
     
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "Notification_Recipients", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"),
-       indexes = {@Index(name = "IDX_NotRec_Entity",  columnList="entity_id"),
-                  @Index(name = "IDX_NotRec_Task", columnList="task_id")})
+    @JoinTable(name = "SOUPE_WF_NOTF_RECIPIENT", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity>       recipients = Collections.emptyList();
 
     @ManyToMany(targetEntity=OrganizationalEntityImpl.class)
-    @JoinTable(name = "Notification_BAs", joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "entity_id"),
-       indexes = {@Index(name = "IDX_NotBAs_Entity",  columnList="entity_id"),
-                  @Index(name = "IDX_NotBAs_Task", columnList="task_id")})
+    @JoinTable(name = "SOUPE_WF_NOTF_BUSI_ADMIN", joinColumns = @JoinColumn(name = "TASK_ID"), inverseJoinColumns = @JoinColumn(name = "ENTITY_ID"))
     private List<OrganizationalEntity>       businessAdministrators = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Notification_Names_Id", nullable = true)    
+    @JoinColumn(name = "NOTIFICATION_NAME_ID", nullable = true)
     private List<I18NText> names        = Collections.emptyList();
     
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Notification_Subjects_Id", nullable = true)    
+    @JoinColumn(name = "NOTIFICATION_SUBJECT_ID", nullable = true)
     private List<I18NText> subjects     = Collections.emptyList();
     
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Notification_Descriptions_Id", nullable = true)
+    @JoinColumn(name = "NOTIFICATION_DESCRIPTION_ID", nullable = true)
     private List<I18NText> descriptions = Collections.emptyList();  
     
     public void writeExternal(ObjectOutput out) throws IOException {

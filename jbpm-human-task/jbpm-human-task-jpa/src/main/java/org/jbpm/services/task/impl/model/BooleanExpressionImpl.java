@@ -16,6 +16,10 @@
 
 package org.jbpm.services.task.impl.model;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -31,17 +35,26 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="BooleanExpression",
-       indexes = {@Index(name = "IDX_BoolExpr_Id",  columnList="Escalation_Constraints_Id")})
-@SequenceGenerator(name="booleanExprIdSeq", sequenceName="BOOLEANEXPR_ID_SEQ", allocationSize=1)
-public class BooleanExpressionImpl implements org.kie.internal.task.api.model.BooleanExpression {
+@Table(name="SOUPE_WF_BOOLEAN_EXPR")
+public class BooleanExpressionImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.BooleanExpression {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="booleanExprIdSeq")
+    @GeneratedValue(generator = "S_SOUPE_WF_BOOLEAN_EXPR")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_BOOLEAN_EXPR",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_BOOLEAN_EXPR")
+            }
+    )
+    @Column(name = "ID")
     private Long   id;
+
+    @Column(name = "TYPE")
     private String type;
     
-    @Lob @Column(length=65535)
+    @Lob
+    @Column(name = "EXPRESSION", length=65535)
     private String expression;
     
     public BooleanExpressionImpl() {

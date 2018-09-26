@@ -20,19 +20,22 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.kie.internal.task.api.model.InternalOrganizationalEntity;
 
 @Entity
-@Table(name="OrganizationalEntity")
-public abstract class OrganizationalEntityImpl implements InternalOrganizationalEntity {
+@Table(name="SOUPE_WF_ORG_ENTITY")
+public abstract class OrganizationalEntityImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalOrganizationalEntity {
     
     @Id
-    private String id;   
-    
+    @Column(name = "ID")
+    private String id;
+
     public OrganizationalEntityImpl() {
     }
         

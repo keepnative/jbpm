@@ -33,11 +33,11 @@ import org.kie.internal.task.api.model.Deadline;
 @Embeddable
 public class DeadlinesImpl implements org.kie.internal.task.api.model.Deadlines {    
     @OneToMany(cascade = CascadeType.ALL, targetEntity=DeadlineImpl.class)
-    @JoinColumn(name = "Deadlines_StartDeadLine_Id", nullable = true)    
+    @JoinColumn(name = "DEADLINE_START_DEADLINE_ID", nullable = true)
     private List<Deadline> startDeadlines = Collections.emptyList();
     
     @OneToMany(cascade = CascadeType.ALL, targetEntity=DeadlineImpl.class)
-    @JoinColumn(name = "Deadlines_EndDeadLine_Id", nullable = true)    
+    @JoinColumn(name = "DEADLINE_END_DEADLINE_ID", nullable = true)
     private List<Deadline> endDeadlines  = Collections.emptyList();
     
     public void writeExternal(ObjectOutput out) throws IOException {

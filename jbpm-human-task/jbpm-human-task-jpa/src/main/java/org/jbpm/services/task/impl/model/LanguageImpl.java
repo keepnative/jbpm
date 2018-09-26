@@ -22,7 +22,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class LanguageImpl implements org.kie.internal.task.api.model.Language {
 
-    @Column(nullable=false)
+    @Column(name = "LANGUAGE", nullable=false)
     private String mapkey;
 
     public String getMapkey() {

@@ -27,30 +27,43 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Version;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.persistence.api.PersistentCorrelationKey;
 import org.kie.internal.jaxb.CorrelationKeyXmlAdapter;
 import org.kie.internal.process.CorrelationKey;
 import org.kie.internal.process.CorrelationProperty;
 
 @Entity
-@SequenceGenerator(name="correlationKeyInfoIdSeq", sequenceName="CORRELATION_KEY_ID_SEQ")
-public class CorrelationKeyInfo implements PersistentCorrelationKey, Serializable {
+@Table(name = "SOUPE_WF_CORRELATION_KEY")
+public class CorrelationKeyInfo extends AbstractBaseEntityWithDomainNoAuditing implements PersistentCorrelationKey, Serializable {
 
 	private static final long serialVersionUID = 4469298702447675428L;
 
 	@Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="correlationKeyInfoIdSeq")
-    @Column(name = "keyId")
+    @GeneratedValue(generator = "S_SOUPE_WF_CORRELATION_KEY")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_CORRELATION_KEY",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CORRELATION_KEY")
+            }
+    )
+    @Column(name = "ID")
     private long id;
     
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int version;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId;
-    
+
+    @Column(name = "NAME")
     private String name;
     
     @OneToMany(mappedBy="correlationKey", cascade=CascadeType.ALL)

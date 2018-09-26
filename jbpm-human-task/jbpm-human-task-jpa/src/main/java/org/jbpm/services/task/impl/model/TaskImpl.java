@@ -40,6 +40,9 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
 import org.kie.api.task.model.I18NText;
 import org.kie.api.task.model.PeopleAssignments;
@@ -50,52 +53,54 @@ import org.kie.internal.task.api.model.InternalTask;
 import org.kie.internal.task.api.model.SubTasksStrategy;
 
 @Entity
-@Table(name="Task",
-       indexes = {@Index(name = "IDX_Task_Initiator",  columnList="taskInitiator_id"),
-                  @Index(name = "IDX_Task_ActualOwner",  columnList="actualOwner_id"),
-                  @Index(name = "IDX_Task_CreatedBy",  columnList="createdBy_id"),
-                  @Index(name = "IDX_Task_processInstanceId",  columnList="processInstanceId"),
-                  @Index(name = "IDX_Task_processId",  columnList="processId"),
-                  @Index(name = "IDX_Task_status",  columnList="status"),
-                  @Index(name = "IDX_Task_archived",  columnList="archived"),
-                  @Index(name = "IDX_Task_workItemId", columnList="workItemId")})
-@SequenceGenerator(name="taskIdSeq", sequenceName="TASK_ID_SEQ", allocationSize=1)
-public class TaskImpl implements InternalTask {
+@Table(name="SOUPE_WF_TASK")
+public class TaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalTask {
     /**
      * WSHT uses a name for the unique identifier, for now we use a generated ID which is also the key, which can be
      * mapped to the name or a unique name field added later.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="taskIdSeq")
-    @Column(name = "id")
+    @GeneratedValue(generator = "S_SOUPE_WF_TASK")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_TASK",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_TASK")
+            }
+    )
+    @Column(name = "ID")
     private Long                 id = 0L;
     
     @Version
-    @Column(name = "OPTLOCK")
+    @Column(name = "VERSION")
     private int                  version;
 
     /**
      * While WSHT says this is an expression, it always resolves to an integer, so resolve before setting
      * default value is 0.
      */
+    @Column(name = "PRIORITY")
     private int                  priority;
 
+    @Column(name = "NAME")
     private String name;
-    
+
+    @Column(name = "SUBJECT")
     private String subject;
-    
+
+    @Column(name = "DESCRIPTION")
     private String description;
     
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Task_Names_Id", nullable = true)
+    @JoinColumn(name = "TASK_NAME_ID", nullable = true)
     private List<I18NText> names        = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Task_Subjects_Id", nullable = true)
+    @JoinColumn(name = "TASK_SUBJECT_ID", nullable = true)
     private List<I18NText> subjects     = Collections.emptyList();
 
     @OneToMany(cascade = CascadeType.ALL, targetEntity=I18NTextImpl.class)
-    @JoinColumn(name = "Task_Descriptions_Id", nullable = true)
+    @JoinColumn(name = "TASK_DESCRIPTION_ID", nullable = true)
     private List<I18NText> descriptions = Collections.emptyList();
 
 
@@ -113,13 +118,17 @@ public class TaskImpl implements InternalTask {
 
     @Enumerated(EnumType.STRING)
     // Default Behaviour
+    @Column(name = "SUB_TASK_STRATEGY")
     private SubTasksStrategy subTaskStrategy = SubTasksStrategy.NoAction;
-    
+
+    @Column(name = "TASK_TYPE")
     private String               taskType;
-    
+
+    @Column(name = "FORM_NAME")
     private String               formName;
     
     @Basic
+    @Column(name = "ARCHIVED")
     private Short archived = 0;
     
 

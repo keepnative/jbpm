@@ -31,11 +31,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import org.jbpm.process.audit.JPAAuditLogService;
+import org.jbpm.process.audit.strategy.PersistenceStrategyType;
 import org.jbpm.query.jpa.impl.QueryCriteriaUtil;
 import org.jbpm.services.task.audit.BAMTaskSummaryQueryBuilder;
 import org.jbpm.services.task.audit.impl.model.AuditTaskImpl;
 import org.jbpm.services.task.audit.impl.model.BAMTaskSummaryImpl;
 import org.jbpm.services.task.audit.impl.model.TaskEventImpl;
+import org.kie.api.runtime.Environment;
 import org.kie.internal.task.query.AuditTaskDeleteBuilder;
 import org.kie.internal.task.query.AuditTaskQueryBuilder;
 import org.kie.internal.task.query.TaskEventDeleteBuilder;
@@ -66,6 +68,10 @@ public class TaskJPAAuditService extends JPAAuditLogService {
 
 	public TaskJPAAuditService(EntityManagerFactory emf) {
 		super(emf);
+	}
+
+	public TaskJPAAuditService(Environment env, PersistenceStrategyType persistenceStrategyType) {
+		super(env, persistenceStrategyType);
 	}
 
 	// Methods needed by the TaskAuditQueryCriteriaUtil

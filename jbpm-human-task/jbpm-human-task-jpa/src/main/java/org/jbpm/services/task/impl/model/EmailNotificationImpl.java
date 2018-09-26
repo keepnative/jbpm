@@ -25,6 +25,8 @@ import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 
@@ -39,6 +41,7 @@ public class EmailNotificationImpl extends NotificationImpl implements org.kie.i
 
     @OneToMany(cascade = CascadeType.ALL)
     @MapKeyColumn(name="mapkey")
+    @JoinTable(name = "SOUPE_WF_EMAIL_HEAD_LANG", joinColumns = @JoinColumn(name = "EMAIL_HEADER_ID"), inverseJoinColumns = @JoinColumn(name = "NOTIFICATION_ID"))
     private Map<LanguageImpl, EmailNotificationHeaderImpl> emailHeaders;
     
     @Override

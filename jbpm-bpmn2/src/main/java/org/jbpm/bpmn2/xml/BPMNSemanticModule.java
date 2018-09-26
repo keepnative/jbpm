@@ -54,7 +54,7 @@ public class BPMNSemanticModule extends DefaultSemanticModule {
         addHandler("complexGateway", new ComplexGatewayHandler());
         addHandler("scriptTask", new ScriptTaskHandler());
         addHandler("task", new TaskHandler());
-        addHandler("userTask", new UserTaskHandler());
+        addHandler("userTask", new SoupeUserTaskHandler());
         addHandler("manualTask", new ManualTaskHandler());
         addHandler("serviceTask", new ServiceTaskHandler());
         addHandler("sendTask", new SendTaskHandler());

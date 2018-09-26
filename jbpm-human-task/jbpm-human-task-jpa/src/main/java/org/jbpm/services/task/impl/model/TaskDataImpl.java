@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -50,66 +51,89 @@ import org.kie.internal.task.api.model.InternalTaskData;
 @Embeddable
 public class TaskDataImpl implements InternalTaskData {
     @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
     private Status status = Status.Created;         // initial default state
 
+    @Column(name = "PREVIOUS_STATUS")
     private Status previousStatus = null;
 
-    @ManyToOne(targetEntity=UserImpl.class)
+    @ManyToOne(targetEntity = UserImpl.class)
+    @JoinColumn(name = "ACTUAL_OWNER")
     private User actualOwner;
 
-    @ManyToOne(targetEntity=UserImpl.class)
+    @ManyToOne(targetEntity = UserImpl.class)
+    @JoinColumn(name = "CREATED_BY")
     private User createdBy;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdOn;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "ACTIVATION_TIME")
     private Date activationTime;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "EXPIRATION_TIME")
     private Date expirationTime;
 
+    @Column(name = "SKIPABLE")
     private boolean skipable;
 
+    @Column(name = "WORK_ITEM_ID")
     private long workItemId = -1;
-    
+
+    @Column(name = "PROCESS_INSTANCE_ID")
     private long processInstanceId = -1;
 
+    @Column(name = "DOCUMENT_ACCESS_TYPE")
     private AccessType documentAccessType;
 
+    @Column(name = "DOCUMENT_TYPE")
     private String documentType;
 
+    @Column(name = "DOCUMENT_CONTENT_ID")
     private long documentContentId = -1;
 
+    @Column(name = "OUTPUT_ACCESS_TYPE")
     private AccessType outputAccessType;
 
+    @Column(name = "OUTPUT_TYPE")
     private String outputType;
 
+    @Column(name = "OUTPUT_CONTENT_ID")
     private long outputContentId = -1;
 
+    @Column(name = "FAULT_NAME")
     private String faultName;
 
+    @Column(name = "FAULT_ACCESS_TYPE")
     private AccessType faultAccessType;
 
+    @Column(name = "FAULT_TYPE")
     private String faultType;
 
+    @Column(name = "FAULT_CONTENT_ID")
     private long faultContentId = -1;
 
+    @Column(name = "PARENT_ID")
     private long parentId = -1;
-    
+
+    @Column(name = "PROCESS_ID")
     private String processId;
-    
+
+    @Column(name = "DEPLOYMENT_ID")
     private String deploymentId;
-    
+
+    @Column(name = "PROCESS_SESSION_ID")
     private long processSessionId;
 
-    @OneToMany(cascade = CascadeType.ALL, targetEntity=CommentImpl.class)
-    @JoinColumn(name = "TaskData_Comments_Id", nullable = true)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = CommentImpl.class)
+    @JoinColumn(name = "TASKDATA_COMMENTS_ID", nullable = true)
     @OrderBy("id ASC")
     private List<Comment> comments = Collections.emptyList();
 
-    @OneToMany(cascade = CascadeType.ALL, targetEntity=AttachmentImpl.class)
-    @JoinColumn(name = "TaskData_Attachments_Id", nullable = true)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = AttachmentImpl.class)
+    @JoinColumn(name = "TASKDATA_ATTACHMENTS_ID", nullable = true)
     @OrderBy("id ASC")
     private List<Attachment> attachments = Collections.emptyList();
    

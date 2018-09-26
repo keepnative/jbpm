@@ -18,6 +18,7 @@ package org.jbpm.runtime.manager.impl.jpa;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,24 +31,104 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
+import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.kie.internal.runtime.error.ExecutionError;
 
 
 @Entity
-@Table(name = "ExecutionErrorInfo", indexes = {@Index(name = "IDX_ErrorInfo_pInstId", columnList = "PROCESS_INST_ID"), @Index(name = "IDX_ErrorInfo_errorAck", columnList = "ERROR_ACK")})
-@SequenceGenerator(name="execErrorInfoIdSeq", sequenceName="EXEC_ERROR_INFO_ID_SEQ", allocationSize=1)
-public class ExecutionErrorInfo extends ExecutionError implements Serializable {
+@Table(name = "SOUPE_WF_EXEC_ERROR_INFO")
+public class ExecutionErrorInfo extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
 
 	private static final long serialVersionUID = 6669858787722894023L;
-	
+
+    @Id
+    @GeneratedValue(generator = "S_SOUPE_WF_CONTEXT_MAPPING")
+    @GenericGenerator(
+            name = "S_SOUPE_WF_CONTEXT_MAPPING",
+            strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+            parameters = {
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTEXT_MAPPING")
+            }
+    )
+    @Column(name = "ID")
 	private Long id;
 
+    @Column(name="ERROR_ID")
+    private String errorId;
+
+    @Column(name="TYPE")
+    private String type;
+
+    @Column(name="DEPLOYMENT_ID")
+    private String deploymentId;
+
+    @Column(name="PROCESS_INSTANCE_ID")
+    private Long processInstanceId;
+    @Column(name="PROCESS_ID")
+    private String processId;
+    @Column(name="ACTIVITY_ID")
+    private Long activityId;
+    @Column(name="ACTIVITY_NAME")
+    private String activityName;
+    @Column(name="JOB_ID")
+    private Long jobId;
+
+    @Column(name="ERROR_MESSAGE")
+    private String errorMessage;
+
+    @Lob
+    @Column(name="ERROR", length=65535)
+    private String error;
+
+    @Column(name="ACKNOWLEDGED")
+    private Short acknowledged = 0;
+
+    @Column(name="ACKNOWLEDGED_BY")
+    private String acknowledgedBy;
+
+    @Column(name="ACKNOWLEDGED_AT")
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date acknowledgedAt;
+
+    @Column(name="ERROR_DATE")
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date errorDate;
+
+    @Column(name="INIT_ACTIVITY_ID")
+    private Long initActivityId;
+
     public ExecutionErrorInfo() {
-        
+        errorId = UUID.randomUUID().toString();
     }
-    
+
+    public ExecutionErrorInfo(String errorId, String type, String deploymentId, Long processInstanceId, String processId, Long activityId, String activityName, Long jobId, String errorMessage,
+                          short acknowledged, String acknowledgedBy, Date acknowledgedAt,
+                          Date errorDate) {
+        this(errorId, type, deploymentId, processInstanceId, processId, activityId, activityName, jobId, errorMessage, null, acknowledged, acknowledgedBy, acknowledgedAt, errorDate);
+    }
+
+    public ExecutionErrorInfo(String errorId, String type, String deploymentId, Long processInstanceId, String processId, Long activityId, String activityName, Long jobId, String errorMessage, String error,
+                          short acknowledged, String acknowledgedBy, Date acknowledgedAt,
+                          Date errorDate) {
+        this.errorId = errorId;
+        this.type = type;
+        this.deploymentId = deploymentId;
+        this.processInstanceId = processInstanceId;
+        this.processId = processId;
+        this.activityId = activityId;
+        this.activityName = activityName;
+        this.jobId = jobId;
+        this.errorMessage = errorMessage;
+        this.error = error;
+        this.acknowledged = acknowledged;
+        this.acknowledgedBy = acknowledgedBy;
+        this.acknowledgedAt = acknowledgedAt;
+        this.errorDate = errorDate;
+    }
+
     public ExecutionErrorInfo(String errorId, String type, String deploymentId, Long processInstanceId, String processId, Long activityId, String activityName, Long jobId, String errorMessage, String error, Date errorDate, Long initActivityId) {
-        super();
         this.errorId = errorId;
         this.type = type;
         this.deploymentId = deploymentId;
@@ -63,119 +144,152 @@ public class ExecutionErrorInfo extends ExecutionError implements Serializable {
         this.initActivityId = initActivityId;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator="execErrorInfoIdSeq")
-    @Column(name = "id")
     public Long getId() {
         return id;
     }
-    
+
     public void setId(Long id) {
         this.id = id;
     }
-    
-    @Column(name="ERROR_ID")
+
     public String getErrorId() {
-        return this.errorId;
-    }    
-
-    @Column(name="ERROR_TYPE")
-    @Override
-    public String getType() {
-        return super.getType();
+        return errorId;
     }
 
-    @Column(name="DEPLOYMENT_ID")
-    @Override
-    public String getDeploymentId() {
-        return super.getDeploymentId();
-    }
-
-    @Column(name="PROCESS_INST_ID")
-    @Override
-    public Long getProcessInstanceId() {
-        return super.getProcessInstanceId();
-    }
-    
-    @Column(name="ACTIVITY_ID")
-    @Override
-    public Long getActivityId() {
-        return super.getActivityId();
-    }
-
-    @Column(name="ERROR_MSG")
-    @Override
-    public String getErrorMessage() {
-        return super.getErrorMessage();
-    }
-
-    @Lob
-    @Column(name="ERROR_INFO", length=65535)
-    @Override
-    public String getError() {
-        return super.getError();
-    }
-
-    @Column(name="ERROR_ACK")
-    @Override
-    protected Short getAcknowledged() {
-        return super.getAcknowledged();
-    }
-
-    @Column(name="ERROR_ACK_BY")
-    @Override
-    public String getAcknowledgedBy() {
-        return super.getAcknowledgedBy();
-    }
-
-    @Column(name="ERROR_ACK_AT")
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
-    @Override
-    public Date getAcknowledgedAt() {
-        return super.getAcknowledgedAt();
-    }
-
-    @Column(name="PROCESS_ID")
-    @Override
-    public String getProcessId() {
-        return super.getProcessId();
-    }
-
-    @Column(name="ACTIVITY_NAME")
-    @Override
-    public String getActivityName() {
-        return super.getActivityName();
-    }
-
-    @Column(name="ERROR_DATE")
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
-    @Override
-    public Date getErrorDate() {
-        return super.getErrorDate();
-    }
-  
     public void setErrorId(String errorId) {
         this.errorId = errorId;
     }
-    
-    @Column(name="JOB_ID")
-    @Override
-    public Long getJobId() {
-        return super.getJobId();
+
+    public String getType() {
+        return type;
     }
 
-    @Column(name="INIT_ACTIVITY_ID")
-    @Override
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
+    }
+
+    public Long getProcessInstanceId() {
+        return processInstanceId;
+    }
+
+    public void setProcessInstanceId(Long processInstanceId) {
+        this.processInstanceId = processInstanceId;
+    }
+
+    public Long getActivityId() {
+        return activityId;
+    }
+
+    public void setActivityId(Long activityId) {
+        this.activityId = activityId;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    protected Short getAcknowledged() {
+        return acknowledged;
+    }
+
+    protected void setAcknowledged(Short acknowledged) {
+        this.acknowledged = acknowledged;
+    }
+
+    public boolean isAcknowledged() {
+        if (acknowledged == null) {
+            return false;
+        }
+        return (acknowledged == 1) ? Boolean.TRUE : Boolean.FALSE;
+    }
+
+    public void setAcknowledged(boolean acknowledged) {
+        setAcknowledged(acknowledged ? new Short("1") : new Short("0"));
+    }
+
+    public String getAcknowledgedBy() {
+        return acknowledgedBy;
+    }
+
+    public void setAcknowledgedBy(String acknowledgedBy) {
+        this.acknowledgedBy = acknowledgedBy;
+    }
+
+    public Date getAcknowledgedAt() {
+        return acknowledgedAt;
+    }
+
+    public void setAcknowledgedAt(Date acknowledgedAt) {
+        this.acknowledgedAt = acknowledgedAt;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
+
+    public void setProcessId(String processId) {
+        this.processId = processId;
+    }
+
+    public String getActivityName() {
+        return activityName;
+    }
+
+    public void setActivityName(String activityName) {
+        this.activityName = activityName;
+    }
+
+    public Date getErrorDate() {
+        return errorDate;
+    }
+
+    public void setErrorDate(Date errorDate) {
+        this.errorDate = errorDate;
+    }
+
+    public Long getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(Long jobId) {
+        this.jobId = jobId;
+    }
+
     public Long getInitActivityId() {
-        return super.getInitActivityId();
+        return initActivityId;
+    }
+
+
+    public void setInitActivityId(Long initActivityId) {
+        this.initActivityId = initActivityId;
     }
 
     @Override
     public String toString() {
-        return "ExecutionErrorInfo [errorId=" + errorId + ", type=" + type + ", deploymentId=" + deploymentId + ", processInstanceId=" + processInstanceId + ", initActivityId=" + initActivityId + 
-                ", processId=" + processId + ", activityId=" + activityId + ", activityName=" + activityName + ", errorMessage=" + errorMessage + 
+        return "ExecutionErrorInfo [errorId=" + errorId + ", type=" + type + ", deploymentId=" + deploymentId + ", processInstanceId=" + processInstanceId + ", initActivityId=" + initActivityId +
+                ", processId=" + processId + ", activityId=" + activityId + ", activityName=" + activityName + ", errorMessage=" + errorMessage +
                 ", acknowledged=" + acknowledged + "]";
-    } 
-	
+    }
+
 	
 }
