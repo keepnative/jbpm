@@ -44,12 +44,12 @@ public class ExecutionErrorInfo extends AbstractBaseEntityWithDomainNoAuditing i
 	private static final long serialVersionUID = 6669858787722894023L;
 
     @Id
-    @GeneratedValue(generator = "S_SOUPE_WF_CONTEXT_MAPPING")
+    @GeneratedValue(generator = "S_SOUPE_WF_EXEC_ERROR_INFO")
     @GenericGenerator(
-            name = "S_SOUPE_WF_CONTEXT_MAPPING",
+            name = "S_SOUPE_WF_EXEC_ERROR_INFO",
             strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
             parameters = {
-                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_CONTEXT_MAPPING")
+                    @Parameter(name = "sequence_name", value = "S_SOUPE_WF_EXEC_ERROR_INFO")
             }
     )
     @Column(name = "ID")

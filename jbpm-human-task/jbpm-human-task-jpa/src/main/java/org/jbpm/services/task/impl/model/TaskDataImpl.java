@@ -66,6 +66,7 @@ public class TaskDataImpl implements InternalTaskData {
     private User createdBy;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "CREATED_ON")
     private Date createdOn;
 
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
