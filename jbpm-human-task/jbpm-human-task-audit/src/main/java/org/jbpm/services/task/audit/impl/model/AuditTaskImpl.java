@@ -27,15 +27,13 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
-import io.keepnative.soupe.model.AbstractBaseEntityWithoutDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.AuditTask;
 
 @Entity
 @Table(name = "SOUPE_WF_AUDIT_TASK")
-public class AuditTaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable,
+public class AuditTaskImpl implements Serializable,
                                       AuditTask {
 
     private static final long serialVersionUID = 5388016330549830043L;

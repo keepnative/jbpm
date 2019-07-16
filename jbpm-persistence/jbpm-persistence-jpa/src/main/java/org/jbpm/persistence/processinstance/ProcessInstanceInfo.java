@@ -41,7 +41,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.drools.core.common.InternalKnowledgeRuntime;
 import org.drools.core.impl.InternalKnowledgeBase;
 import org.drools.core.impl.StatefulKnowledgeSessionImpl;
@@ -65,7 +64,7 @@ import org.kie.api.runtime.process.ProcessInstance;
 
 @Entity
 @Table(name = "SOUPE_WF_PROC_INST")
-public class ProcessInstanceInfo extends AbstractBaseEntityWithDomainNoAuditing implements PersistentProcessInstance {
+public class ProcessInstanceInfo implements PersistentProcessInstance {
 
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_PROC_INST")

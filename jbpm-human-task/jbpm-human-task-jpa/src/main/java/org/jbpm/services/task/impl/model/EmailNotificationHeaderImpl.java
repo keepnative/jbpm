@@ -19,7 +19,6 @@
  */
 package org.jbpm.services.task.impl.model;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -38,7 +37,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "SOUPE_WF_EMAIL_HEAD")
-public class EmailNotificationHeaderImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.EmailNotificationHeader {
+public class EmailNotificationHeaderImpl implements org.kie.internal.task.api.model.EmailNotificationHeader {
     
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_EMAIL_HEAD")

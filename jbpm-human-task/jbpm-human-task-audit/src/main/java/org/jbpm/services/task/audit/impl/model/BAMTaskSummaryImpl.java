@@ -15,7 +15,6 @@
  */
 package org.jbpm.services.task.audit.impl.model;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -36,7 +35,7 @@ import javax.persistence.Version;
 
 @Entity
 @Table(name="SOUPE_WF_BAM_TASK_SUMMARY")
-public class BAMTaskSummaryImpl extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
+public class BAMTaskSummaryImpl implements Serializable {
 
     private static final long serialVersionUID = 2793651602463099870L;
 

@@ -25,12 +25,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.kie.internal.task.api.model.InternalOrganizationalEntity;
 
 @Entity
 @Table(name="SOUPE_WF_ORG_ENTITY")
-public abstract class OrganizationalEntityImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalOrganizationalEntity {
+public abstract class OrganizationalEntityImpl implements InternalOrganizationalEntity {
     
     @Id
     @Column(name = "ID")

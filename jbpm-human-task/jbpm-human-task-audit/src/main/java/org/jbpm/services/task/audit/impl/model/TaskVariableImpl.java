@@ -32,7 +32,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.TaskVariable;
@@ -41,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(name = "SOUPE_WF_TASK_VARIABLE")
-public class TaskVariableImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskVariable, Serializable {
+public class TaskVariableImpl implements TaskVariable, Serializable {
 
     private static final long serialVersionUID = 5388016330549830048L;
     private static final Logger logger = LoggerFactory.getLogger(TaskVariableImpl.class);

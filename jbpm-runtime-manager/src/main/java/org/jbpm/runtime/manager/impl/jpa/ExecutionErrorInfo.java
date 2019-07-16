@@ -31,7 +31,6 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.runtime.error.ExecutionError;
@@ -39,7 +38,7 @@ import org.kie.internal.runtime.error.ExecutionError;
 
 @Entity
 @Table(name = "SOUPE_WF_EXEC_ERROR_INFO")
-public class ExecutionErrorInfo extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
+public class ExecutionErrorInfo implements Serializable {
 
 	private static final long serialVersionUID = 6669858787722894023L;
 

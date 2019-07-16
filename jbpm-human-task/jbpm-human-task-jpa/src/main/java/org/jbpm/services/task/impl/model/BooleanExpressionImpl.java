@@ -16,7 +16,6 @@
 
 package org.jbpm.services.task.impl.model;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -36,7 +35,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="SOUPE_WF_BOOLEAN_EXPR")
-public class BooleanExpressionImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.BooleanExpression {
+public class BooleanExpressionImpl implements org.kie.internal.task.api.model.BooleanExpression {
     
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_BOOLEAN_EXPR")

@@ -35,7 +35,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
@@ -44,7 +43,7 @@ import org.kie.internal.task.api.model.Escalation;
 
 @Entity
 @Table(name="SOUPE_WF_DEADLINE")
-public class DeadlineImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Deadline {
+public class DeadlineImpl implements org.kie.internal.task.api.model.Deadline {
 
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_CONTENT")

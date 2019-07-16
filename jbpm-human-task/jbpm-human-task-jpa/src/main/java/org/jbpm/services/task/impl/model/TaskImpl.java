@@ -40,7 +40,6 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
@@ -54,7 +53,7 @@ import org.kie.internal.task.api.model.SubTasksStrategy;
 
 @Entity
 @Table(name="SOUPE_WF_TASK")
-public class TaskImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalTask {
+public class TaskImpl implements InternalTask {
     /**
      * WSHT uses a name for the unique identifier, for now we use a generated ID which is also the key, which can be
      * mapped to the name or a unique name field added later.

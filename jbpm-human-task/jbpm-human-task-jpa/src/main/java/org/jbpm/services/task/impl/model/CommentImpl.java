@@ -34,7 +34,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.api.task.model.User;
@@ -42,7 +41,7 @@ import org.kie.internal.task.api.model.InternalComment;
 
 @Entity
 @Table(name = "SOUPE_WF_COMMENT")
-public class CommentImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalComment  {
+public class CommentImpl implements InternalComment  {
     
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_COMMENT")

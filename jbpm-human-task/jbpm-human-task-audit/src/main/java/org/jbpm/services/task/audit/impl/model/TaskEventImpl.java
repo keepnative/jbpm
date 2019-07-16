@@ -39,7 +39,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.Version;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.model.TaskEvent;
@@ -49,7 +48,7 @@ import org.kie.internal.task.api.model.TaskEvent;
  */
 @Entity
 @Table(name="SOUPE_WF_TASK_EVENT")
-public class TaskEventImpl extends AbstractBaseEntityWithDomainNoAuditing implements TaskEvent, Externalizable {
+public class TaskEventImpl implements TaskEvent, Externalizable {
 
   @Id
   @GeneratedValue(generator = "S_SOUPE_WF_TASK_EVENT")

@@ -20,7 +20,6 @@
  */
 package org.jbpm.services.task.impl.model;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -41,7 +40,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="SOUPE_WF_TASK_DEFINITION")
-public class TaskDefImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.TaskDef {
+public class TaskDefImpl implements org.kie.internal.task.api.model.TaskDef {
     
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_TASK_DEFINITION")

@@ -31,14 +31,13 @@ import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.task.api.model.InternalI18NText;
 
 @Entity
 @Table(name="SOUPE_WF_I18N_TEXT")
-public class I18NTextImpl extends AbstractBaseEntityWithDomainNoAuditing implements InternalI18NText {
+public class I18NTextImpl implements InternalI18NText {
     
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_I18N_TEXT")

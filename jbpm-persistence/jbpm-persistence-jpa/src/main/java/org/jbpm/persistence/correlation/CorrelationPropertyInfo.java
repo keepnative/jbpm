@@ -29,14 +29,13 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.kie.internal.process.CorrelationProperty;
 
 @Entity
 @Table(name = "SOUPE_WF_CORRELATION_PROP")
-public class CorrelationPropertyInfo extends AbstractBaseEntityWithDomainNoAuditing implements CorrelationProperty<String>, Serializable {
+public class CorrelationPropertyInfo implements CorrelationProperty<String>, Serializable {
 
 	private static final long serialVersionUID = -4469224502447675428L;
 

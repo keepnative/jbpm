@@ -36,7 +36,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.services.task.utils.CollectionUtils;
@@ -46,7 +45,7 @@ import org.kie.internal.task.api.model.NotificationType;
 
 @Entity
 @Table(name="SOUPE_WF_NOTIFICATION")
-public class NotificationImpl extends AbstractBaseEntityWithDomainNoAuditing implements org.kie.internal.task.api.model.Notification  {
+public class NotificationImpl implements org.kie.internal.task.api.model.Notification  {
     
     @Id
     @GeneratedValue(generator = "S_SOUPE_WF_NOTIFICATION")

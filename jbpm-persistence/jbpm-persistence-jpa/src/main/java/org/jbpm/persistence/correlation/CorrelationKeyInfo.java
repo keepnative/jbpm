@@ -30,7 +30,6 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.persistence.api.PersistentCorrelationKey;
@@ -40,7 +39,7 @@ import org.kie.internal.process.CorrelationProperty;
 
 @Entity
 @Table(name = "SOUPE_WF_CORRELATION_KEY")
-public class CorrelationKeyInfo extends AbstractBaseEntityWithDomainNoAuditing implements PersistentCorrelationKey, Serializable {
+public class CorrelationKeyInfo implements PersistentCorrelationKey, Serializable {
 
 	private static final long serialVersionUID = 4469298702447675428L;
 

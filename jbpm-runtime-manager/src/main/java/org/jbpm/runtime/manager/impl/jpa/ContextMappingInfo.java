@@ -15,7 +15,6 @@
  */
 package org.jbpm.runtime.manager.impl.jpa;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -61,7 +60,7 @@ import javax.persistence.Version;
                         + "ProcessInstanceInfo processInstanceInfo join processInstanceInfo.eventTypes eventTypes"
                         + " where eventTypes = :eventType and cmInfo.contextId = cast(processInstanceInfo.processInstanceId as string)"
                         + " and cmInfo.ownerId = :ownerId")})
-public class ContextMappingInfo extends AbstractBaseEntityWithDomainNoAuditing implements Serializable {
+public class ContextMappingInfo implements Serializable {
 
     private static final long serialVersionUID = 533985957655465840L;
     

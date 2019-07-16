@@ -79,11 +79,6 @@
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.keepnative.soupe</groupId>
-      <artifactId>soupe-model</artifactId>
-      <scope>provided</scope>
-    </dependency>
 
     <dependency>
       <!--  only needed for metadata generation -->

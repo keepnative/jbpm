@@ -30,7 +30,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import io.keepnative.soupe.model.AbstractBaseEntityWithDomainNoAuditing;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.jbpm.process.audit.event.AuditEvent;
@@ -39,7 +38,7 @@ import org.kie.api.runtime.KieRuntime;
 
 @Entity
 @Table(name="SOUPE_WF_PROC_INST_LOG")
-public class ProcessInstanceLog extends AbstractBaseEntityWithDomainNoAuditing implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.ProcessInstanceLog {
+public class ProcessInstanceLog implements Serializable, AuditEvent, org.kie.api.runtime.manager.audit.ProcessInstanceLog {
     
 	private static final long serialVersionUID = 510l;
 
